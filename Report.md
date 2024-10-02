@@ -10,8 +10,7 @@ Group 1, Section 200
 4. Patralika Ghosh
 5. Maximiliano Pombo
 
-## 2. Project topic (e.g., parallel sorting algorithms)
-Parallel sorting algorithms
+## 2. Parallel sorting algorithms
 
 ### 2a. Project communication
 For this project, our team will communicate via Discord for planning, organization, and collaboration.
