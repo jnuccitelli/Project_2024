@@ -1,6 +1,7 @@
 # CSCE 435 Group project
 
 ## 0. Group number: 
+Group 1, Section 200
 
 ## 1. Group members:
 1. Ariela Mitrani
@@ -22,6 +23,7 @@ For this project, we will be comparing the following 5 algorithms:
 - Merge Sort (Ariela)
 - Radix Sort (Alex)
 - Column Sort
+  
 We will be implementing everything with MPI for this project.
 
 ### 2c. Pseudocode for each parallel algorithm
