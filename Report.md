@@ -69,7 +69,7 @@ array startChildProcesses(myId, numChildren, array, arraySize) {
     return mergeSort(array, arraySize)
   if(numChildren == 1)
     MPI_send(left half of array and size to myId+1)
-    sortedRight = mergeSorty(right half of array, arraySize/2)
+    sortedRight = mergeSort(right half of array, arraySize/2)
     sortedLeft; //empty array
     MPI_recv(sortedLeft from myId+1)
     return combineSortedArrays(sortedRight, sortedLeft)
