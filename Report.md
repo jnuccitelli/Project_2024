@@ -33,7 +33,13 @@ We will be implementing everything with MPI for this project.
 #### Merge Sort: Ariela
 ```
 int arraySize = user input for array size;
-int procNum = user input for process number
+int procNum;
+int taskId;
+
+MPI_Init(&argc,&argv);
+MPI_Comm_rank(MPI_COMM_WORLD,&taskid);
+MPI_Comm_size(MPI_COMM_WORLD,&procNum);
+
 int boredProcesses = procNum;
 
 for(n in procNum) {
