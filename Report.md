@@ -31,7 +31,8 @@ We will be implementing everything with MPI for this project.
 #### Bitonic Sort: Maximiliano
 #### Sample Sort: Joseph
 #### Merge Sort: Ariela
-int arraySize = user input for array size
+```
+int arraySize = user input for array size;
 int procNum = user input for process number
 int boredProcesses = procNum;
 
@@ -110,6 +111,7 @@ combineSortedArrays(sortedRight, sortedLeft, arraySizeRight, arraySizeLeft) {
     }
   }
 }
+```
 
 #### Radix Sort: Alex
 #### Column Sort: Patralika
