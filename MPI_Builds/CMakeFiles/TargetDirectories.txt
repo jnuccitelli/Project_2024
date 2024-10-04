@@ -1,0 +1,3 @@
+/Users/ArielaM/Desktop/Project_2024/MPI_Builds/CMakeFiles/mergesort.dir
+/Users/ArielaM/Desktop/Project_2024/MPI_Builds/CMakeFiles/edit_cache.dir
+/Users/ArielaM/Desktop/Project_2024/MPI_Builds/CMakeFiles/rebuild_cache.dir
