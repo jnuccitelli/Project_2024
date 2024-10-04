@@ -146,12 +146,9 @@ MPI_Init(&argc,&argv);
 MPI_Comm_rank(MPI_COMM_WORLD,&taskid);
 MPI_Comm_size(MPI_COMM_WORLD,&procNum);
 
-int boredProcesses = procNum;
-
 for(n in procNum) {
   if(taskid == n) {
-    int children = min(boredProcesses, 2);
-    boredProcesses -= children;
+    int children = childCount(n, procNum); //check if left child 2n+1 is in range, right child 2n+2 is in range
 
     int[] array;
     if(taskid == 0)
@@ -159,14 +156,13 @@ for(n in procNum) {
       startChildProcesses(n, children, array, arraySize)
     else
       MPI_recv(array from parent process)
-      MPI_send(startChildProcesses(n, children, array, arraySize) to our parent task (id-1 if even, id-2 if odd))
+      MPI_send(startChildProcesses(n, children, array, arraySize) to our parent task ((n-2)/2 if even, (n-1)/2 if odd))
   }
 }
 
 if(taskid == 0)
-  MPI_recv(finalArray)
+  print(finalArray)
 
-printf(finalArray)
 return; //end of program main
 
 //helper function 1
@@ -174,18 +170,18 @@ array startChildProcesses(myId, numChildren, array, arraySize) {
   if(numChildren == 0)
     return mergeSort(array, arraySize)
   if(numChildren == 1)
-    MPI_send(left half of array and size to myId+1)
+    MPI_send(left half of array and size to 2*myId+1)
     sortedRight = mergeSort(right half of array, arraySize/2)
     sortedLeft; //empty array
-    MPI_recv(sortedLeft from myId+1)
+    MPI_recv(sortedLeft from 2*myId+1)
     return combineSortedArrays(sortedRight, sortedLeft)
   if(numChildren == 2)
-    MPI_send(left half of array and size to myId+1)
-    MPI_send(right half of array and size to myId+2)
+    MPI_send(left half of array and size to 2*myId+1)
+    MPI_send(right half of array and size to 2*myId+2)
     sortedLeft; //empty array
     sortedRight; //empty array
-    MPI_recv(sortedLeft from myId+1)
-    MPI_recv(sortedRight from myId+2)
+    MPI_recv(sortedLeft from 2*myId+1)
+    MPI_recv(sortedRight from 2*myId+2)
     return combineSortedArrays(sortedRight, sortedLeft, arraySizeRight, arraySizeLeft)
 }
 
