@@ -195,20 +195,29 @@ for (i in numBits of type) {
     else {
       if (taskId > j) {
         previousProcessorZeroes += MPI_Receive(localNumZeroes, j)
-        previousProcessorOnes += MPI_recieve(localNuMOnes, j)
+        previousProcessorOnes += MPI_recieve(localNumOnes, j)
       }
     }
   }
 
-  //Repopulate totalArray
-  for (i in size(localArray)) {
-    if (i < localNumZeroes) {
-      totalArray[i + previousProcessorZeroes] = localArray[i]
+  localSortedArray = empty.size(localArray)
+  for (j in localArray) {
+    int position
+    if (lcoalArray[j] == 0) {
+      position = j + previousProcessorZeroes
     }
     else {
-      totalArray[i + previousProcessorOnes + totalNumZeroes) = localArray[i]
+      position = j + previousProcessorOnes + totalProcessorZeroes
     }
-  }  
+    int destProcessor = position / numProc
+    int destOffset = position % numProc
+    MPI_Put(localArray[j] in localSortedArray[destOffset] in processor destProcessor)
+  }
+
+  MPI_Wait until all puts complete
+
+  localArray = localSortedArray
+   
   
 }
 
