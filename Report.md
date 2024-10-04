@@ -236,6 +236,176 @@ local_counting_sort(localArray, bitNumber) {
 }
 ```
 #### Column Sort: Patralika
+```
+int arraySize = user_input_for_array_size;
+int procNum;
+int taskId;
+
+MPI_Init(&argc, &argv);
+MPI_Comm_rank(MPI_COMM_WORLD, &taskId);
+MPI_Comm_size(MPI_COMM_WORLD, &procNum);
+
+int boredProcesses = procNum;
+int numRows = sqrt(procNum);  
+
+
+int arrayDimension = sqrt(arraySize);
+
+// Create 2D array for local process
+int[][] localArray;
+
+for (int n in procNum) {
+    if (taskId == n) {
+        int children = min(boredProcesses, 2);
+        boredProcesses -= children;
+
+        if (taskId == 0) {
+            
+            int[] array = generateArray(arraySize);  
+            int[][] array2D = convertTo2D(array, arrayDimension);  
+
+            // Split 2D array rows and distribute them to child processes
+            startChildProcesses(n, children, array2D, arrayDimension);
+        } else {
+            MPI_recv(localArray from parent process);
+            MPI_send(startChildProcesses(n, children, localArray, arrayDimension) to parent task (id - 1 if even, id - 2 if odd));
+        }
+    }
+}
+
+// Root process collects sorted data from child processes
+if (taskId == 0) {
+    MPI_recv(finalArray);
+}
+
+printf(finalArray);
+return;
+
+// Split 2D array rows and distribute them to child processes
+array startChildProcesses(myId, numChildren, array, arraySize) {
+    if (numChildren == 0) {
+        return columnSort(array, arraySize);  
+    }
+    if (numChildren == 1) {
+        MPI_send(left half of array and size to myId + 1);
+        sortedRight = columnSort(right half of array, arraySize / 2);
+        sortedLeft;  
+        MPI_recv(sortedLeft from myId + 1);
+        return combineSortedArrays(sortedRight, sortedLeft);
+    }
+    if (numChildren == 2) {
+        MPI_send(left half of array and size to myId + 1);
+        MPI_send(right half of array and size to myId + 2);
+        sortedLeft; 
+        sortedRight;  
+        MPI_recv(sortedLeft from myId + 1);
+        MPI_recv(sortedRight from myId + 2);
+        return combineSortedArrays(sortedRight, sortedLeft, arraySizeRight, arraySizeLeft);
+    }
+}
+
+// Helper function 2: Column Sort algorithm
+int[][] columnSort(int[][] array2D, int dimension) {
+    // Sort columns
+    for (int i = 0; i < dimension; i++) {
+        array2D[i] = sequentialSort(array2D[i]);  
+    }
+
+    //Perform a row permutation step
+    array2D = rowPermutation(array2D, dimension);
+
+    // Sort each row
+    for (int i = 0; i < dimension; i++) {
+        array2D[i] = sequentialSort(array2D[i]);  // Sort each row
+    }
+
+    // Perform a column permutation step
+    array2D = columnPermutation(array2D, dimension);
+
+    // Sort columns again
+    for (int i = 0; i < dimension; i++) {
+        array2D[i] = sequentialSort(array2D[i]);  // Final column sort
+    }
+
+    return array2D;
+}
+
+// Perform row permutation
+int[][] rowPermutation(int[][] array2D, int dimension) {
+    int temp[dimension];
+    
+    // Shuffle rows within the process
+    for (int i = 0; i < dimension; i++) {
+        int newPos = (i + 1) % dimension;
+        temp[newPos] = array2D[i];
+    }
+    
+    // Copy permuted rows back to array2D
+    for (int i = 0; i < dimension; i++) {
+        array2D[i] = temp[i];
+    }
+    
+    // If rows are split across processes:
+    if (numProcesses > 1) {
+        // Send/receive rows to/from other processes
+        MPI_Sendrecv_replace(&array2D, dimension * sizeof(int), MPI_INT, 
+                             neighborProcessID, 0, neighborProcessID, 0, MPI_COMM_WORLD, &status);
+    }
+
+    return array2D;
+}
+
+
+// Perform column permutation
+int[][] columnPermutation(int[][] array2D, int dimension) {
+    int temp[dimension];
+    
+    // Shuffle columns within the process
+    for (int i = 0; i < dimension; i++) {
+        int newPos = (i + 1) % dimension;  
+        for (int j = 0; j < dimension; j++) {
+            temp[j] = array2D[j][i];  
+        }
+        for (int j = 0; j < dimension; j++) {
+            array2D[j][newPos] = temp[j];  
+        }
+    }
+    
+    // MPI Communication for distributed columns
+    // If columns are split across processes:
+    if (numProcesses > 1) {
+        MPI_Sendrecv_replace(&array2D, dimension * sizeof(int), MPI_INT, 
+                             neighborProcessID, 0, neighborProcessID, 0, MPI_COMM_WORLD, &status);
+    }
+
+    return array2D;
+}
+
+
+// Combine sorted arrays from child processes
+int[] combineSortedArrays(int[] sortedRight, int[] sortedLeft, int sizeRight, int sizeLeft) {
+    int[] returnArray = new int[sizeRight + sizeLeft];
+    int r = 0;
+    int l = 0;
+    for (int i = 0; i < sizeRight + sizeLeft; i++) {
+        if (r == sizeRight) {
+            returnArray[i] = sortedLeft[l];
+            l++;
+        } else if (l == sizeLeft) {
+            returnArray[i] = sortedRight[r];
+            r++;
+        } else if (sortedRight[r] < sortedLeft[l]) {
+            returnArray[i] = sortedRight[r];
+            r++;
+        } else {
+            returnArray[i] = sortedLeft[l];
+            l++;
+        }
+    }
+    return returnArray;
+}
+
+```
 
 ### 2d. Evaluation plan - what and how will you measure and compare
 - Compare different algorithms to sort and see how the performance differs across them
