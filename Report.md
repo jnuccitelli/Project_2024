@@ -132,7 +132,7 @@ int totalArray[arraySize]
 
 //Generate the array
 for (i in procNum) {
-  int offset = arraySize / ProcNum * taskId;
+  int offset = arraySize / ProcNum * taskId
   totalArray[from offset to (offset + (arraySize/ProcNum)] = Array generation
 }
 
@@ -143,6 +143,7 @@ for (i in numBits of type) {
   //get total zeroes to all processes
   int localNumZeroes
   localArray, localNumZeroes = local_counting_sort(localArray, bitnumber = i)
+  int localNumOnes = size(localArray) - localNumZeroes
   int totalNumZeroes
   MPI_Reduce(reduce local_num_zeroes to total_num_zeroes to process 0)
   if (taskId == 0) {
@@ -152,25 +153,31 @@ for (i in numBits of type) {
     MPI_Recieve(totalNumZeroes from process 0)
   }
 
-  //Ge
-  int previous_processor_zeroes = 0;
-  int previous_processor_ones = 0;
-  for (i = taskId in procNum) {
-      MPI_Send(localNumZeroes)
-      MPI_Send(localNumOnes)
-  }
-  for (i = taskId; i > 0; --i) {
-      previous_processor_zeroes += MPI_Recieve(localNumZeroes)
-      previous_processor_ones += MPI_Recieve(localNumOnes)
+  //Getting the amount of ones and zeroes on previous processors
+  int previousProcessorZeroes = 0;
+  int previousProcessorOnes = 0;
+  for (j in procNum) {
+    if (taskId == j) {
+      for (k = taskId to procNum) {
+        MPI_Send(localNumZeroes, k)
+        MPI_Send(localNumOnes)
+      }
+    }
+    else {
+      if (taskId > j) {
+        previousProcessorZeroes += MPI_Receive(localNumZeroes, j)
+        previousProcessorOnes += MPI_recieve(localNuMOnes, j)
+      }
+    }
   }
 
   //Repopulate totalArray
   for (i in size(localArray)) {
     if (i < localNumZeroes) {
-      totalArray[i + previous_porccesor_zeroes] = localArray[i]
+      totalArray[i + previousProcessorZeroes] = localArray[i]
     }
     else {
-      totalArray[i + previous_processor_ones + totalNumZeroes) = localArray[i]
+      totalArray[i + previousProcessorOnes + totalNumZeroes) = localArray[i]
     }
   }  
   
