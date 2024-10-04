@@ -21,6 +21,50 @@
 #define FROM_PARENT 1          /* setting a message type */
 #define FROM_CHILD 2          /* setting a message type */
 
+double* combineSortedArrays(double* left, double* right, int leftSize, int rightSize) {
+   double* returnArray = new double[leftSize+rightSize];
+   int r = 0;
+   int l = 0;
+   for(int i = 0; i < leftSize+rightSize; i++){
+    if(r == rightSize) {
+      returnArray[i] = left[l];
+      l++;
+    }
+    else if(l == leftSize) {
+      returnArray[i] = right[r];
+      r++;
+    }
+    else if(right[r] < left[l]) {
+      returnArray[i] = right[r];
+      r++;
+    }
+    else {
+      returnArray[i] = left[l];
+      l++;
+    }
+  }
+  return returnArray;
+}
+
+double* mergeSort(double* arr, int size) {
+   if(size == 1) {
+      return arr;
+   } else {
+      int leftSize = size/2;
+      int rightSize = size - leftSize;
+      double* leftSorted = mergeSort(arr, leftSize);
+      double* rightSorted = mergeSort(arr + leftSize, rightSize);
+      return combineSortedArrays(leftSorted, rightSorted, leftSize, rightSize);
+   }
+}
+
+double* startChildProcesses(int id, int childCount, double* arr, int arrSize) {
+   if(childCount == 0){
+      return mergeSort(arr, arrSize);
+   }
+   return nullptr;
+}
+
 int main (int argc, char *argv[])
 {
    int sizeOfArray; //this is an input to the code
@@ -44,12 +88,13 @@ int main (int argc, char *argv[])
    	dest,                  /* task id of message destination */
    	mtype;                 /* message type */
    MPI_Status status;
+   double* sortedArr;
 
    MPI_Init(&argc,&argv);
    MPI_Comm_rank(MPI_COMM_WORLD,&taskid);
    MPI_Comm_size(MPI_COMM_WORLD,&numtasks);
 
-   int boredProcesses = numtasks;
+   int boredProcesses = numtasks-1;
    for(int n = 0; n < numtasks; n++){
       if(taskid == n) {
          int children = std::min(boredProcesses, 2);
@@ -58,8 +103,17 @@ int main (int argc, char *argv[])
          if(taskid == MASTER) { //only our first array initializes the array to be sorted
             double* toSort = generateArray(sizeOfArray, inputType);
             printArray(toSort, sizeOfArray);
+            sortedArr = startChildProcesses(n, children, toSort, sizeOfArray);
+         } else {
+            //MPI_recv()
+            //double* sorted = startChildProcesses();
+            //MPI_send()
          }
       }
+   }
+
+   if(taskid == MASTER) {
+      printArray(sortedArr, sizeOfArray);
    }
 
    MPI_Finalize();
