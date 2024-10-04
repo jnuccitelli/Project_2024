@@ -119,6 +119,75 @@ combineSortedArrays(sortedRight, sortedLeft, arraySizeRight, arraySizeLeft) {
 ```
 
 #### Radix Sort: Alex
+```
+int arraySize = user input for array size
+int procNum
+int taskId
+
+MPI_Init(&argc,&argv)
+MPI_Comm_rank(MPI_COMM_WORLD,&taskid)
+MPI_Comm_size(MPI_COMM_WORLD,&procNum)
+
+int totalArray[arraySize]
+
+//Generate the array
+for (i in procNum) {
+  int offset = arraySize / ProcNum * taskId;
+  totalArray[from offset to (offset + (arraySize/ProcNum)] = Array generation
+}
+
+//sort the array
+for (i in numBits of type) {
+  int[arraySize / ProcNum] localArray = totalArray[from offset to (offset + (arraySize/ProcNum)]
+
+  //get total zeroes to all processes
+  int local_num_zeroes, local_num_ones = local_counting_sort(localArray, bitnumber = i)
+  int total_num_zeroes = 0;
+  MPI_Reduce(reduce local_num_zeroes to total_num_zeroes to process 0)
+  if (taskId == 0) {
+    MPI_Send(total_num_zeroes)
+  }
+  else {
+    MPI_Recieve(total_num_zeroes from process 0)
+  }
+
+  //Ge
+  int previous_processor_zeroes = 0;
+  int previous_processor_ones = 0;
+  for (i = taskId in procNum) {
+      MPI_Send(local_num_zeroes)
+      MPI_Send(local_num_ones)
+  }
+  for (i = taskId; i > 0; --i) {
+      previous_processor_zeroes += MPI_Recieve(local_num_zeroes)
+      previous_processor_ones += MPI_Recieve(local_num_ones)
+  }
+
+  //Repopulate totalArray
+  for (i in size(localArray)) {
+    if (i < local_num_zeroes) {
+      totalArray[i + previous_porccesor_zeroes] = localArray[i]
+    }
+    else {
+      totalArray[i + previous_processor_ones + total_num_zeroes) = localArray[i]
+    }
+  }  
+  
+}
+
+
+//Helper functions
+local_counting_sort(localArray, bitnumber) {
+
+  counting_array[2] = [0, 0] //Always 2 elements, 0 and 1
+
+  for (i in size(localArray)) {
+    counting_array[(localArray[i] >> n) & 1]++
+  }
+  return counting_array
+  
+}
+```
 #### Column Sort: Patralika
 
 ### 2d. Evaluation plan - what and how will you measure and compare
