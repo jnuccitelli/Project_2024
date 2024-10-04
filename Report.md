@@ -342,6 +342,15 @@ void sequentialSort(int *array, int size) {
     }
 }
 
+// Helper function to print arrays for debugging
+void printArray(const char* title, int* array, int size) {
+    printf("%s:\n", title);
+    for (int i = 0; i < size; i++) {
+        printf("%d ", array[i]);
+    }
+    printf("\n");
+}
+
 // Main function
 int main(int argc, char** argv) {
     int taskId, procNum;
@@ -360,24 +369,38 @@ int main(int argc, char** argv) {
     // Root process initializes the global array with some values
     if (taskId == 0) {
         for (int i = 0; i < arraySize; i++) {
-            globalArray[i] = arraySize - i;  // Just an example: [16, 15, ..., 1]
+            globalArray[i] = arraySize - i;  // Example: [16, 15, ..., 1]
         }
     }
 
     // Step 1: Scatter the 2D array (divided into columns) to all processes
     MPI_Scatter(globalArray, arrayDimension, MPI_INT, localData, arrayDimension, MPI_INT, 0, MPI_COMM_WORLD);
+    
+    // Print local data for each process after scattering (debugging)
+    // printf("Process %d received data: ", taskId);
+    // for (int i = 0; i < arrayDimension; i++) {
+    //     printf("%d ", localData[i]);
+    // }
+    // printf("\n");
 
     // Step 2: Each process sorts its assigned column
     sequentialSort(localData, arrayDimension);
 
-    // Step 3: All processes permute rows (shuffle rows among processes)
-    MPI_Alltoall(localData, arrayDimension, MPI_INT, shuffledData, arrayDimension, MPI_INT, MPI_COMM_WORLD);
+    // Step 3: Perform row-wise transposition using MPI_Alltoall
+    MPI_Alltoall(localData, 1, MPI_INT, shuffledData, 1, MPI_INT, MPI_COMM_WORLD);
+
+    // Print shuffled data for each process after all-to-all (debugging)
+    // printf("Process %d after Alltoall: ", taskId);
+    // for (int i = 0; i < arrayDimension; i++) {
+    //     printf("%d ", shuffledData[i]);
+    // }
+    // printf("\n");
 
     // Step 4: Each process sorts the shuffled rows
     sequentialSort(shuffledData, arrayDimension);
 
-    // Step 5: Reverse the row permutation (transpose back)
-    MPI_Alltoall(shuffledData, arrayDimension, MPI_INT, localData, arrayDimension, MPI_INT, MPI_COMM_WORLD);
+    // Step 5: Reverse the row transposition (transpose back)
+    MPI_Alltoall(shuffledData, 1, MPI_INT, localData, 1, MPI_INT, MPI_COMM_WORLD);
 
     // Step 6: Final column sort (each process sorts its final column)
     sequentialSort(localData, arrayDimension);
@@ -387,11 +410,7 @@ int main(int argc, char** argv) {
 
     // Root process prints the sorted global array
     if (taskId == 0) {
-        printf("Sorted Array:\n");
-        for (int i = 0; i < arraySize; i++) {
-            printf("%d ", globalArray[i]);
-        }
-        printf("\n");
+        printArray("Sorted Array", globalArray, arraySize);
     }
 
     // Finalize the MPI environment
@@ -399,8 +418,6 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-
-
 ```
 
 ### 2d. Evaluation plan - what and how will you measure and compare
