@@ -29,6 +29,35 @@ We will be implementing everything with MPI for this project.
 - For MPI programs, include MPI calls you will use to coordinate between processes
 #### Bitonic Sort: Maximiliano
 #### Sample Sort: Joseph
+```
+int arraySize = user input for array size;
+int procNum;
+int taskId;
+
+MPI_Init(&argc,&argv);
+MPI_Comm_rank(MPI_COMM_WORLD,&taskid);
+MPI_Comm_size(MPI_COMM_WORLD,&procNum);
+
+if(procNum == 0){
+  //create the array and fill it with elements
+}
+MPI_Scatter(array, sizeof(array)/nbuckets, MPI_DOUBLE,procArray, sizeof(array)/nbuckets, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+//quick sort the samples
+std::sort(procArray);
+MPI_Gather(all quick sorted elements);
+//select the splitters using quicksort each process will do this to avoid extra communication
+
+//put each element in the bucket
+for(i = 0; i < size/nbuckets; ++i){
+  correctBucket.insert(procArray[i]);
+}
+//each process sorts each bucket using quick sort
+std::sort(bucket);
+
+//array is sorted now
+
+
+```
 #### Merge Sort: Ariela
 ```
 int arraySize = user input for array size;
