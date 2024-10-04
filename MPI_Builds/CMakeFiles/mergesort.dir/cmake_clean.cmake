@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/mergesort.dir/helpers.cpp.o"
+  "CMakeFiles/mergesort.dir/helpers.cpp.o.d"
   "CMakeFiles/mergesort.dir/merge_sort.cpp.o"
   "CMakeFiles/mergesort.dir/merge_sort.cpp.o.d"
   "mergesort"

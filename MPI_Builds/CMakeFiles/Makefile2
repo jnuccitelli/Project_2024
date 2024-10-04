@@ -81,12 +81,12 @@ clean: CMakeFiles/mergesort.dir/clean
 CMakeFiles/mergesort.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/mergesort.dir/build.make CMakeFiles/mergesort.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/mergesort.dir/build.make CMakeFiles/mergesort.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/ArielaM/Desktop/Project_2024/MPI_Builds/CMakeFiles --progress-num=1,2 "Built target mergesort"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/ArielaM/Desktop/Project_2024/MPI_Builds/CMakeFiles --progress-num=1,2,3 "Built target mergesort"
 .PHONY : CMakeFiles/mergesort.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/mergesort.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/ArielaM/Desktop/Project_2024/MPI_Builds/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/ArielaM/Desktop/Project_2024/MPI_Builds/CMakeFiles 3
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/mergesort.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/ArielaM/Desktop/Project_2024/MPI_Builds/CMakeFiles 0
 .PHONY : CMakeFiles/mergesort.dir/rule

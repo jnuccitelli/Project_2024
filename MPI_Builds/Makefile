@@ -129,6 +129,30 @@ mergesort/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/mergesort.dir/build.make CMakeFiles/mergesort.dir/build
 .PHONY : mergesort/fast
 
+helpers.o: helpers.cpp.o
+.PHONY : helpers.o
+
+# target to build an object file
+helpers.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/mergesort.dir/build.make CMakeFiles/mergesort.dir/helpers.cpp.o
+.PHONY : helpers.cpp.o
+
+helpers.i: helpers.cpp.i
+.PHONY : helpers.i
+
+# target to preprocess a source file
+helpers.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/mergesort.dir/build.make CMakeFiles/mergesort.dir/helpers.cpp.i
+.PHONY : helpers.cpp.i
+
+helpers.s: helpers.cpp.s
+.PHONY : helpers.s
+
+# target to generate assembly for a file
+helpers.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/mergesort.dir/build.make CMakeFiles/mergesort.dir/helpers.cpp.s
+.PHONY : helpers.cpp.s
+
 merge_sort.o: merge_sort.cpp.o
 .PHONY : merge_sort.o
 
@@ -162,6 +186,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... mergesort"
+	@echo "... helpers.o"
+	@echo "... helpers.i"
+	@echo "... helpers.s"
 	@echo "... merge_sort.o"
 	@echo "... merge_sort.i"
 	@echo "... merge_sort.s"

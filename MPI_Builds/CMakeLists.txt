@@ -6,7 +6,7 @@ find_package(adiak REQUIRED)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-add_executable(mergesort merge_sort.cpp)
+add_executable(mergesort merge_sort.cpp helpers.cpp)
 
 message(STATUS "MPI includes : ${MPI_INCLUDE_PATH}")
 message(STATUS "Caliper includes : ${caliper_INCLUDE_DIR}")
