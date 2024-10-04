@@ -141,35 +141,36 @@ for (i in numBits of type) {
   int[arraySize / ProcNum] localArray = totalArray[from offset to (offset + (arraySize/ProcNum)]
 
   //get total zeroes to all processes
-  int local_num_zeroes, local_num_ones = local_counting_sort(localArray, bitnumber = i)
-  int total_num_zeroes = 0;
+  int localNumZeroes
+  localArray, localNumZeroes = local_counting_sort(localArray, bitnumber = i)
+  int totalNumZeroes
   MPI_Reduce(reduce local_num_zeroes to total_num_zeroes to process 0)
   if (taskId == 0) {
-    MPI_Send(total_num_zeroes)
+    MPI_Send(totalNumZeroes)
   }
   else {
-    MPI_Recieve(total_num_zeroes from process 0)
+    MPI_Recieve(totalNumZeroes from process 0)
   }
 
   //Ge
   int previous_processor_zeroes = 0;
   int previous_processor_ones = 0;
   for (i = taskId in procNum) {
-      MPI_Send(local_num_zeroes)
-      MPI_Send(local_num_ones)
+      MPI_Send(localNumZeroes)
+      MPI_Send(localNumOnes)
   }
   for (i = taskId; i > 0; --i) {
-      previous_processor_zeroes += MPI_Recieve(local_num_zeroes)
-      previous_processor_ones += MPI_Recieve(local_num_ones)
+      previous_processor_zeroes += MPI_Recieve(localNumZeroes)
+      previous_processor_ones += MPI_Recieve(localNumOnes)
   }
 
   //Repopulate totalArray
   for (i in size(localArray)) {
-    if (i < local_num_zeroes) {
+    if (i < localNumZeroes) {
       totalArray[i + previous_porccesor_zeroes] = localArray[i]
     }
     else {
-      totalArray[i + previous_processor_ones + total_num_zeroes) = localArray[i]
+      totalArray[i + previous_processor_ones + totalNumZeroes) = localArray[i]
     }
   }  
   
@@ -177,14 +178,24 @@ for (i in numBits of type) {
 
 
 //Helper functions
-local_counting_sort(localArray, bitnumber) {
+local_counting_sort(localArray, bitNumber) {
 
-  counting_array[2] = [0, 0] //Always 2 elements, 0 and 1
+  countingArray[2] = [0, 0] //Always 2 elements, number of 0s and 1s
 
   for (i in size(localArray)) {
-    counting_array[(localArray[i] >> n) & 1]++
+    countingArray[(localArray[i] >> bitNumber) & 1]++
   }
-  return counting_array
+  countingArray[1] += countArray[0]
+  numZeroes = countArray[0]
+
+  //Populate the output array
+  outputArray[size(localArray)]
+  for (i in size(outputArray)) {
+    outputArray[countArray[localArray[i]] - 1] = inputArray[i]
+    countArray[inputArray[i]]--
+  }
+  
+  return outputArray, numZeroes
   
 }
 ```
