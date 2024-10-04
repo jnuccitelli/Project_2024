@@ -21,4 +21,6 @@ double* generateArray(int size, int inputType);
 
 void printArray(double* arr, int size);
 
+bool verifySorted(double* arr, int size);
+
 #endif

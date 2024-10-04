@@ -69,3 +69,14 @@ void printArray(double* arr, int size) {
    }
    printf("\n");
 }
+
+bool verifySorted(double* arr, int size) { //check if an array was sorted correctly
+   double max = 0;
+   for(int i = 0; i < size; i++) {
+      if(arr[i] < max) {
+         return false;
+      }
+      max = arr[i];
+   }
+   return true;
+}
