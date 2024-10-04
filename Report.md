@@ -28,6 +28,84 @@ We will be implementing everything with MPI for this project.
 ### 2c. Pseudocode for each parallel algorithm
 - For MPI programs, include MPI calls you will use to coordinate between processes
 #### Bitonic Sort: Maximiliano
+```
+// Bitonic Sort is a parallel sorting algorithm that is efficient for hardware implementations and works well in a parallel computing environment.
+// It requires a bitonic Sequence which is a sequence that first increases and then decreases, or is entirely increasing or decreasing.
+/* Fist thing to do is recursively divide the sequence into two halves, creating a bitonic sequence from the two halves.
+Then merge the bitonic sequences into larger bitonic sequences until the entire sequence is sorted.
+*/
+//Time Complexity of O(log2n)
+
+int totalElements = user_input_for_array_size;
+int totalProcesses;
+int currentProcessId;
+
+MPI_Init(&argc, &argv);
+MPI_Comm_rank(MPI_COMM_WORLD, &currentProcessId);
+MPI_Comm_size(MPI_COMM_WORLD, &totalProcesses);
+
+int chunkSize = totalElements / totalProcesses;
+int[] localChunk = new int[chunkSize];
+
+// Generate or receive the local part of the array
+if (currentProcessId == 0) {
+    int[] completeArray = generateArray(totalElements);
+    MPI_Scatter(completeArray, chunkSize, MPI_INT, localChunk, chunkSize, MPI_INT, 0, MPI_COMM_WORLD);
+} else {
+    MPI_Scatter(NULL, chunkSize, MPI_INT, localChunk, chunkSize, MPI_INT, 0, MPI_COMM_WORLD);
+}
+
+// Bitonic Sort on the local chunk
+bitonicSort(localChunk, chunkSize, currentProcessId, totalProcesses);
+
+// Gather the sorted chunks back to the root process
+int[] sortedArray;
+if (currentProcessId == 0) {
+    sortedArray = new int[totalElements];
+}
+MPI_Gather(localChunk, chunkSize, MPI_INT, sortedArray, chunkSize, MPI_INT, 0, MPI_COMM_WORLD);
+
+// Output the sorted array
+if (currentProcessId == 0) {
+    printf(sortedArray); 
+}
+return;
+
+// Perform Bitonic Sort
+void bitonicSort(int[] array, int size, int currentProcessId, int totalProcesses) {
+    for (int stepSize = 2; stepSize <= size; stepSize *= 2) { 
+        for (int subStep = stepSize / 2; subStep > 0; subStep /= 2) {
+            // Determine the direction (ascending or descending)
+            int sortDirection = (currentProcessId % (stepSize / 2) == 0) ? 1 : 0;
+            bitonicMerge(array, size, subStep, sortDirection);
+        }
+    }
+}
+
+// Perform Bitonic Merge
+void bitonicMerge(int[] array, int size, int step, int sortDirection) {
+    for (int i = 0; i < size; i++) {
+        // Compare and swap based on direction
+        if ((sortDirection == 1 && array[i] > array[i + step]) || (sortDirection == 0 && array[i] < array[i + step])) {
+            swap(array[i], array[i + step]);
+        }
+    }
+
+    // Send and/or receive data from neighbors
+    if (totalProcesses > 1) {
+        MPI_Sendrecv(array, size, MPI_INT, neighborProcessId, 0, 
+                     array, size, MPI_INT, neighborProcessId, 0, MPI_COMM_WORLD, &status);
+    }
+}
+
+// Swap elements helper function 
+void swap(int &first, int &second) {
+    int temp = first;
+    first = second;
+    second = temp;
+}
+
+```
 #### Sample Sort: Joseph
 ```
 int arraySize = user input for array size;
