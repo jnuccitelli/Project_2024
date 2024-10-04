@@ -17,3 +17,4 @@ include_directories(${adiak_INCLUDE_DIRS})
 
 target_link_libraries(mergesort PRIVATE MPI::MPI_CXX)
 target_link_libraries(mergesort PRIVATE caliper)
+target_link_libraries(mergesort PUBLIC adiak::adiak)

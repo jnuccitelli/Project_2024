@@ -16,6 +16,7 @@
 
 #include <caliper/cali.h> //for performance analysis
 #include <caliper/cali-manager.h>
+#include <adiak.hpp>
 
 #define MASTER 0               /* taskid of first task */
 #define FROM_PARENT 1          /* setting a message type */
@@ -223,6 +224,17 @@ int main (int argc, char *argv[])
    CALI_MARK_END(whole_computation);
    double wholeMasterEnd = MPI_Wtime();
 
+   adiak::init(NULL);
+   adiak::user();
+   adiak::launchdate();
+   adiak::libraries();
+   adiak::cmdline();
+   adiak::clustername();
+   adiak::value("num_procs", numtasks);
+   adiak::value("array_size", sizeOfArray);
+   adiak::value("program_name", "merge_sort");
+   adiak::value("array_datatype_size", sizeof(double));
+
    if(taskid == MASTER) {
       if(!verifySorted(sortedArr, sizeOfArray)) {
          printf("There is a bug! This final array is not sorted.\n");
@@ -233,6 +245,7 @@ int main (int argc, char *argv[])
       //printArray(sortedArr, sizeOfArray);
       //printf("****************************\n");
    }
+
 
    mgr.stop();
    mgr.flush();

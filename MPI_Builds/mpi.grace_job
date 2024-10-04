@@ -18,12 +18,13 @@
 ##First Executable Line
 #
 array_size=$1
-processes=$2
+input_type=$2
+processes=$3
 
 module load intel/2020b       # load Intel software stack
 module load CMake/3.12.1
 module load GCCcore/8.3.0
 
-CALI_CONFIG="spot(output=p${processes}-a${array_size}.cali, \
+CALI_CONFIG="spot(output=p${processes}-a${array_size}-in${input_type}.cali, \
     time.variance,profile.mpi)" \
-mpirun -np $processes ./mergesort $array_size
+mpirun -np $processes ./mergesort $array_size $input_type

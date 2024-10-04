@@ -810,4 +810,12 @@ CMakeFiles/mergesort.dir/merge_sort.cpp.o: \
   /usr/local/include/caliper/typesCaliper.h \
   /usr/local/include/caliper/ConfigManager.h \
   /usr/local/include/caliper/ChannelController.h \
-  /usr/local/include/caliper/common/StringConverter.h
+  /usr/local/include/caliper/common/StringConverter.h \
+  /usr/local/include/adiak.hpp /usr/local/include/adiak.h \
+  /usr/local/include/adiak_internal.hpp \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.2.sdk/usr/include/c++/v1/set \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.2.sdk/usr/include/c++/v1/unordered_set \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.2.sdk/usr/include/c++/v1/list \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.2.sdk/usr/include/c++/v1/deque \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.2.sdk/usr/include/c++/v1/cassert \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.2.sdk/usr/include/assert.h

@@ -109,6 +109,7 @@ mergesort: CMakeFiles/mergesort.dir/merge_sort.cpp.o
 mergesort: CMakeFiles/mergesort.dir/helpers.cpp.o
 mergesort: CMakeFiles/mergesort.dir/build.make
 mergesort: /usr/local/lib/libcaliper.2.12.0-dev.dylib
+mergesort: /usr/local/lib/libadiak.dylib
 mergesort: /usr/local/Cellar/open-mpi/5.0.3_1/lib/libmpi.dylib
 mergesort: CMakeFiles/mergesort.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/ArielaM/Desktop/Project_2024/MPI_Builds/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable mergesort"
