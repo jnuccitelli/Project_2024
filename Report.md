@@ -324,37 +324,85 @@ local_counting_sort(localArray, bitNumber) {
 ```
 #### Column Sort: Patralika
 ```
-// MPI initialization and data distribution
-MPI_Init(&argc, &argv);
-MPI_Comm_rank(MPI_COMM_WORLD, &taskId);
-MPI_Comm_size(MPI_COMM_WORLD, &procNum);
+#include <mpi.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
-int arrayDimension = sqrt(arraySize);
-int localData[arrayDimension];
+#define ARRAY_SIZE 16 // Define array size
+#define DIMENSION 4   // Dimension for 2D grid (sqrt(ARRAY_SIZE))
 
-// Step 1: Distribute 2D data to processes
-MPI_Scatter(globalArray, arrayDimension, MPI_INT, localData, arrayDimension, MPI_INT, 0, MPI_COMM_WORLD);
+// Function to sequentially sort an array (use any sorting algorithm here)
+void sequentialSort(int *array, int size) {
+    // Simple bubble sort for demonstration
+    for (int i = 0; i < size - 1; i++) {
+        for (int j = 0; j < size - i - 1; j++) {
+            if (array[j] > array[j + 1]) {
+                int temp = array[j];
+                array[j] = array[j + 1];
+                array[j + 1] = temp;
+            }
+        }
+    }
+}
 
-// Step 2: Sort columns
-sequentialSort(localData);  // Each process sorts its assigned column
+// Main function
+int main(int argc, char** argv) {
+    int taskId, procNum;
+    int arraySize = ARRAY_SIZE;
+    int arrayDimension = DIMENSION;
+    
+    int globalArray[arraySize];    // Global array (only needed by the root process)
+    int localData[arrayDimension]; // Array for local process
+    int shuffledData[arrayDimension]; // Temporary array for shuffling
 
-// Step 3: Permute rows (shuffle rows among processes)
-MPI_Alltoall(localData, arrayDimension, MPI_INT, shuffledData, arrayDimension, MPI_INT, MPI_COMM_WORLD);
+    // Initialize MPI environment
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &taskId);
+    MPI_Comm_size(MPI_COMM_WORLD, &procNum);
 
-// Step 4: Sort rows
-sequentialSort(shuffledData);  // Each process sorts its assigned row
+    // Root process initializes the global array with some values
+    if (taskId == 0) {
+        for (int i = 0; i < arraySize; i++) {
+            globalArray[i] = arraySize - i;  // Just an example: [16, 15, ..., 1]
+        }
+    }
 
-// Step 5: Reverse the row permutation (transpose back)
-MPI_Alltoall(shuffledData, arrayDimension, MPI_INT, localData, arrayDimension, MPI_INT, MPI_COMM_WORLD);
+    // Step 1: Scatter the 2D array (divided into columns) to all processes
+    MPI_Scatter(globalArray, arrayDimension, MPI_INT, localData, arrayDimension, MPI_INT, 0, MPI_COMM_WORLD);
 
-// Step 6: Final column sort
-sequentialSort(localData);
+    // Step 2: Each process sorts its assigned column
+    sequentialSort(localData, arrayDimension);
 
-// Final gather to collect the sorted array
-MPI_Gather(localData, arrayDimension, MPI_INT, globalArray, arrayDimension, MPI_INT, 0, MPI_COMM_WORLD);
+    // Step 3: All processes permute rows (shuffle rows among processes)
+    MPI_Alltoall(localData, arrayDimension, MPI_INT, shuffledData, arrayDimension, MPI_INT, MPI_COMM_WORLD);
 
-// MPI cleanup
-MPI_Finalize();
+    // Step 4: Each process sorts the shuffled rows
+    sequentialSort(shuffledData, arrayDimension);
+
+    // Step 5: Reverse the row permutation (transpose back)
+    MPI_Alltoall(shuffledData, arrayDimension, MPI_INT, localData, arrayDimension, MPI_INT, MPI_COMM_WORLD);
+
+    // Step 6: Final column sort (each process sorts its final column)
+    sequentialSort(localData, arrayDimension);
+
+    // Gather the final sorted columns into the global array (in the root process)
+    MPI_Gather(localData, arrayDimension, MPI_INT, globalArray, arrayDimension, MPI_INT, 0, MPI_COMM_WORLD);
+
+    // Root process prints the sorted global array
+    if (taskId == 0) {
+        printf("Sorted Array:\n");
+        for (int i = 0; i < arraySize; i++) {
+            printf("%d ", globalArray[i]);
+        }
+        printf("\n");
+    }
+
+    // Finalize the MPI environment
+    MPI_Finalize();
+
+    return 0;
+}
 
 
 ```
