@@ -325,12 +325,12 @@ local_counting_sort(localArray, bitNumber) {
 #include <stdlib.h>
 #include <math.h>
 
-#define ARRAY_SIZE 16 // Define array size
+#define ARRAY_SIZE 16 
 #define DIMENSION 4   // Dimension for 2D grid (sqrt(ARRAY_SIZE))
 
-// Function to sequentially sort an array (use any sorting algorithm here)
+
 void sequentialSort(int *array, int size) {
-    // Simple bubble sort for demonstration
+   
     for (int i = 0; i < size - 1; i++) {
         for (int j = 0; j < size - i - 1; j++) {
             if (array[j] > array[j + 1]) {
@@ -342,7 +342,7 @@ void sequentialSort(int *array, int size) {
     }
 }
 
-// Helper function to print arrays for debugging
+// Helper function for debugging
 void printArray(const char* title, int* array, int size) {
     printf("%s:\n", title);
     for (int i = 0; i < size; i++) {
@@ -351,25 +351,25 @@ void printArray(const char* title, int* array, int size) {
     printf("\n");
 }
 
-// Main function
+
 int main(int argc, char** argv) {
     int taskId, procNum;
     int arraySize = ARRAY_SIZE;
     int arrayDimension = DIMENSION;
     
-    int globalArray[arraySize];    // Global array (only needed by the root process)
+    int globalArray[arraySize];    // Global array for the root process
     int localData[arrayDimension]; // Array for local process
     int shuffledData[arrayDimension]; // Temporary array for shuffling
 
-    // Initialize MPI environment
+    
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &taskId);
     MPI_Comm_size(MPI_COMM_WORLD, &procNum);
 
-    // Root process initializes the global array with some values
+    
     if (taskId == 0) {
         for (int i = 0; i < arraySize; i++) {
-            globalArray[i] = arraySize - i;  // Example: [16, 15, ..., 1]
+            globalArray[i] = arraySize - i;  
         }
     }
 
@@ -413,11 +413,12 @@ int main(int argc, char** argv) {
         printArray("Sorted Array", globalArray, arraySize);
     }
 
-    // Finalize the MPI environment
+    
     MPI_Finalize();
 
     return 0;
 }
+
 ```
 
 ### 2d. Evaluation plan - what and how will you measure and compare
