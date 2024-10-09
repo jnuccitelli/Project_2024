@@ -81,7 +81,6 @@ double* mergeSort(double* arr, int size) {
 }
 
 double* startChildProcesses(int id, int childCount, double* arr, int arrSize) {
-   //printf("process %d, children %d\n", id, childCount);
    CALI_MARK_BEGIN(comp);
    CALI_MARK_BEGIN(comp_small);
    int leftSize = arrSize/2;
@@ -95,7 +94,6 @@ double* startChildProcesses(int id, int childCount, double* arr, int arrSize) {
       returnArr = mergeSort(arr, arrSize);
       CALI_MARK_END(comp_large);
       CALI_MARK_END(comp);
-      //printf("Process %d sorted array: ", id);
       //printArray(returnArr, arrSize);
       return returnArr;
    } else if(childCount == 1) {
@@ -162,8 +160,8 @@ double* startChildProcesses(int id, int childCount, double* arr, int arrSize) {
       CALI_MARK_BEGIN(comm_large);
       double leftSorted[leftSize];
       double rightSorted[rightSize];
-      MPI_Recv(&leftSorted, leftSize, MPI_DOUBLE, id+1, FROM_CHILD, MPI_COMM_WORLD, &status);
-      MPI_Recv(&rightSorted, leftSize, MPI_DOUBLE, id+2, FROM_CHILD, MPI_COMM_WORLD, &status);
+      MPI_Recv(&leftSorted, leftSize, MPI_DOUBLE, firstChildId, FROM_CHILD, MPI_COMM_WORLD, &status);
+      MPI_Recv(&rightSorted, leftSize, MPI_DOUBLE, firstChildId+1, FROM_CHILD, MPI_COMM_WORLD, &status);
       CALI_MARK_END(comm_large);
       CALI_MARK_END(comm);
 
@@ -306,7 +304,6 @@ int main (int argc, char *argv[])
             CALI_MARK_BEGIN(main_cali);
             //start child processes and receive sorted array
             double* sorted = startChildProcesses(n, children, toSort, toSortSize);
-
             //send sorted array back to parent process; they already know the size
             CALI_MARK_BEGIN(comm);
             CALI_MARK_BEGIN(comm_large);
