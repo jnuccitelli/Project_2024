@@ -57,16 +57,16 @@ double* combineSortedArrays(double* left, double* right, int leftSize, int right
   return returnArray;
 }
 
-int getChildCount(int id, int numtasks) {
+/*int getChildCount(int id, int totalWorkers) {
    int leftChild = 2*id+1;
-   if(leftChild + 1 < numtasks) {
+   if(leftChild + 1 < totalWorkers) {
       return 2;
-   } else if(leftChild < numtasks) {
+   } else if(leftChild < totalWorkers) {
       return 1;
    } else {
       return 0;
    }
-}
+}*/
 
 double* mergeSort(double* arr, int size) {
    if(size == 1) {
@@ -80,7 +80,7 @@ double* mergeSort(double* arr, int size) {
    }
 }
 
-double* startChildProcesses(int id, int childCount, double* arr, int arrSize) {
+/*double* startChildProcesses(int id, int childCount, double* arr, int arrSize) {
    CALI_MARK_BEGIN(comp);
    CALI_MARK_BEGIN(comp_small);
    int leftSize = arrSize/2;
@@ -98,6 +98,7 @@ double* startChildProcesses(int id, int childCount, double* arr, int arrSize) {
       return returnArr;
    } else if(childCount == 1) {
       CALI_MARK_END(comp_small);
+      CALI_MARK_END(comp);
       //send the left half of the array and its size to child for sorting
       CALI_MARK_BEGIN(comm);
       CALI_MARK_BEGIN(comm_small);
@@ -109,6 +110,7 @@ double* startChildProcesses(int id, int childCount, double* arr, int arrSize) {
       CALI_MARK_END(comm);
 
       //sort the right half of the array ourselves
+      CALI_MARK_BEGIN(comp);
       CALI_MARK_BEGIN(comp_large);
       double* rightSorted = mergeSort(arr+leftSize, rightSize);
       CALI_MARK_END(comp_large);
@@ -176,7 +178,7 @@ double* startChildProcesses(int id, int childCount, double* arr, int arrSize) {
       
       return returnArr;
    }
-}
+}*/
 
 void printIntro(int numtasks, int sizeOfArray, int inputType) {
    if(inputType == RANDOM_INPUT)
@@ -213,7 +215,7 @@ int main (int argc, char *argv[])
    	dest,                  /* task id of message destination */
    	mtype;                 /* message type */
    MPI_Status status;
-   int boredProcesses;
+   int twoKids;
    double* sortedArr;
    double whole_computation_time;
 
@@ -237,7 +239,174 @@ int main (int argc, char *argv[])
    CALI_MARK_BEGIN(main_cali);
    double wholeMasterStart = MPI_Wtime();
 
-   for(int n = 0; n < numtasks; n++){
+   double* toSort;
+   if(taskid == MASTER) {
+      printIntro(numtasks, sizeOfArray, inputType);
+      CALI_MARK_BEGIN(data_init_runtime);
+      toSort = generateArray(sizeOfArray, inputType);
+      CALI_MARK_END(data_init_runtime);
+   }
+
+   CALI_MARK_BEGIN(comp);
+   CALI_MARK_BEGIN(comp_small);
+   int chunkSize = sizeOfArray/numtasks;
+   int remainder = sizeOfArray%numtasks;
+   CALI_MARK_END(comp_small);
+   CALI_MARK_END(comp);
+
+   double* arrChunk = new double[chunkSize + remainder]; //in case we have extra elements we have room for them
+
+   //scatter a chunk of the array to each task
+   CALI_MARK_BEGIN(comm);
+   CALI_MARK_BEGIN(comm_large);
+   MPI_Scatter(toSort, chunkSize, MPI_DOUBLE, arrChunk, chunkSize, MPI_DOUBLE, 0, MPI_COMM_WORLD); //todo not divisible
+   CALI_MARK_END(comm_large);
+   CALI_MARK_END(comm);
+
+   //put the remainder into the master buffer
+   CALI_MARK_BEGIN(comp);
+   CALI_MARK_BEGIN(comp_large);
+   if(remainder != 0 && taskid == MASTER) {
+      for(int i = 0; i < remainder; i++) {
+         arrChunk[chunkSize+i] = toSort[chunkSize*numtasks+i];
+      }
+      chunkSize += remainder;
+   }
+   CALI_MARK_END(comp_large);
+   CALI_MARK_END(comp);
+
+   CALI_MARK_END(main_cali);
+   printf("Process %d sorting chunk...\n", taskid);
+   CALI_MARK_BEGIN(main_cali);
+
+   CALI_MARK_BEGIN(comp);
+   CALI_MARK_BEGIN(comp_large);
+   arrChunk = mergeSort(arrChunk, chunkSize);
+   CALI_MARK_END(comp_large);
+
+   CALI_MARK_BEGIN(comp_small);
+   //if we are not one of the last 2 processes, e.g. we have a "false" parent
+   if(taskid < numtasks-2) {
+      int falseParent = ((taskid+numtasks) + (taskid+numtasks)%2 - 2)/2;
+      int mergeParent = (taskid + taskid%2 - 2)/2; //who you send your final merged array to
+      int leftChild = (2*taskid+1)%numtasks;
+      int rightChild = (leftChild+1)%numtasks;
+      CALI_MARK_END(comp_small);
+      CALI_MARK_END(comp);
+
+      //send false parent sorted array and its size
+      CALI_MARK_BEGIN(comm);
+      CALI_MARK_BEGIN(comm_small);
+      MPI_Send(&chunkSize, 1, MPI_INT, falseParent, FROM_CHILD, MPI_COMM_WORLD);
+      CALI_MARK_END(comm_small);
+      CALI_MARK_BEGIN(comm_large);
+      MPI_Send(arrChunk, chunkSize, MPI_DOUBLE, falseParent, FROM_CHILD, MPI_COMM_WORLD);
+      CALI_MARK_END(comm_large);
+
+      //wait to recv from your 2 children
+      CALI_MARK_BEGIN(comm_small);
+      int leftSize;
+      int rightSize;
+      MPI_Recv(&leftSize, 1, MPI_INT, leftChild, FROM_CHILD, MPI_COMM_WORLD, &status);
+      MPI_Recv(&rightSize, 1, MPI_INT, rightChild, FROM_CHILD, MPI_COMM_WORLD, &status);
+      CALI_MARK_END(comm_small);
+
+      double* leftSorted = new double[leftSize];
+      double* rightSorted = new double[rightSize];
+      
+      CALI_MARK_BEGIN(comm_large);
+      MPI_Recv(leftSorted, leftSize, MPI_DOUBLE, leftChild, FROM_CHILD, MPI_COMM_WORLD, &status);
+      MPI_Recv(rightSorted, rightSize, MPI_DOUBLE, rightChild, FROM_CHILD, MPI_COMM_WORLD, &status);
+      CALI_MARK_END(comm_large);
+      CALI_MARK_END(comm);
+
+      //merge the arrays you got together
+      CALI_MARK_END(main_cali);
+      printf("Process %d combining arrays from processes %d and %d\n", taskid, leftChild, rightChild);
+      CALI_MARK_BEGIN(main_cali);
+
+      CALI_MARK_BEGIN(comp);
+      CALI_MARK_BEGIN(comp_large);
+      double* combined = combineSortedArrays(leftSorted, rightSorted, leftSize, rightSize);
+      CALI_MARK_END(comp_large);
+      CALI_MARK_BEGIN(comp_small);
+      int combinedSize = leftSize+rightSize;
+      CALI_MARK_END(comp_small);
+      CALI_MARK_END(comp);
+
+      //send real parent the merged array if you aren't the master task
+      if(taskid != MASTER) {
+         CALI_MARK_BEGIN(comm);
+         CALI_MARK_BEGIN(comm_small);
+         MPI_Send(&combinedSize, 1, MPI_INT, mergeParent, FROM_CHILD, MPI_COMM_WORLD);
+         CALI_MARK_END(comm_small);
+         CALI_MARK_BEGIN(comm_large);
+         MPI_Send(combined, leftSize+rightSize, MPI_DOUBLE, mergeParent, FROM_CHILD, MPI_COMM_WORLD);
+         CALI_MARK_END(comm_large);
+         CALI_MARK_END(comm);
+      } else {
+         sortedArr = combined;
+      }
+   } else if(taskid == numtasks-2) { //second to last, has one child
+      int leftChild = (2*taskid+1)%numtasks;
+      int mergeParent = (taskid + taskid%2 - 2)/2;
+      CALI_MARK_END(comp_small);
+      CALI_MARK_END(comp);
+
+      //recv from your child
+      int leftSize;
+      CALI_MARK_BEGIN(comm);
+      CALI_MARK_BEGIN(comm_small);
+      MPI_Recv(&leftSize, 1, MPI_INT, leftChild, FROM_CHILD, MPI_COMM_WORLD, &status);
+      CALI_MARK_END(comm_small);
+
+      double* leftSorted = new double[leftSize];
+      CALI_MARK_BEGIN(comm_large);
+      MPI_Recv(leftSorted, leftSize, MPI_DOUBLE, leftChild, FROM_CHILD, MPI_COMM_WORLD, &status);
+      CALI_MARK_END(comm_large);
+      CALI_MARK_END(comm);
+
+      //merge your array with child array
+      CALI_MARK_END(main_cali);
+      printf("Process %d combining arrays from processes %d and %d\n", taskid, taskid, leftChild);
+      CALI_MARK_BEGIN(main_cali);
+
+      CALI_MARK_BEGIN(comp);
+      CALI_MARK_BEGIN(comp_large);
+      double* combined = combineSortedArrays(leftSorted, arrChunk, leftSize, chunkSize);
+      CALI_MARK_END(comp_large);
+      CALI_MARK_BEGIN(comp_small);
+      int combinedSize = leftSize+chunkSize;
+      CALI_MARK_END(comp_small);
+      CALI_MARK_END(comp);
+
+      //send your parent your array
+      CALI_MARK_BEGIN(comm);
+      CALI_MARK_BEGIN(comm_small);
+      MPI_Send(&combinedSize, 1, MPI_INT, mergeParent, FROM_CHILD, MPI_COMM_WORLD);
+      CALI_MARK_END(comm_small);
+      CALI_MARK_BEGIN(comm_large);
+      MPI_Send(combined, leftSize+chunkSize, MPI_DOUBLE, mergeParent, FROM_CHILD, MPI_COMM_WORLD);
+      CALI_MARK_END(comm_large);
+      CALI_MARK_END(comm);
+   } else { //last element, leaf node
+      int mergeParent = (taskid + taskid%2 - 2)/2;
+      CALI_MARK_END(comp_small);
+      CALI_MARK_END(comp);
+
+      //send your parent your array
+      CALI_MARK_BEGIN(comm);
+      CALI_MARK_BEGIN(comm_small);
+      MPI_Send(&chunkSize, 1, MPI_INT, mergeParent, FROM_CHILD, MPI_COMM_WORLD);
+      CALI_MARK_END(comm_small);
+      CALI_MARK_BEGIN(comm_large);
+      MPI_Send(arrChunk, chunkSize, MPI_DOUBLE, mergeParent, FROM_CHILD, MPI_COMM_WORLD);
+      CALI_MARK_END(comm_large);
+      CALI_MARK_END(comm);
+   }
+
+
+   /*for(int n = 0; n < numtasks; n++){
       if(taskid == n) {
          if(taskid == MASTER) { //only our first array initializes the array to be sorted
             CALI_MARK_END(main_cali);
@@ -246,7 +415,7 @@ int main (int argc, char *argv[])
 
             CALI_MARK_BEGIN(comp);
             CALI_MARK_BEGIN(comp_small);
-            int children = getChildCount(n, numtasks);
+            int children = getChildCount(n, numtasks+twoKids);
             CALI_MARK_END(comp_small);
             CALI_MARK_END(comp);
 
@@ -269,14 +438,14 @@ int main (int argc, char *argv[])
          } else {
             CALI_MARK_BEGIN(comp);
             CALI_MARK_BEGIN(comp_small);
-            int children = getChildCount(n, numtasks);
-            int leftChild = 2*n+1;
+            int children = getChildCount(n, numtasks+twoKids);
+            int leftChild = (2*n+1)%numtasks;
             
             int parentId = (n + n%2 - 2)/2; //(n-1)/2 if odd, (n-2)/2 if even
             int toSortSize;
             CALI_MARK_END(comp_small);
             CALI_MARK_END(comp);
-
+            
             //get array and its size from parent process
             CALI_MARK_BEGIN(comm);
             CALI_MARK_BEGIN(comm_small);
@@ -295,7 +464,7 @@ int main (int argc, char *argv[])
             CALI_MARK_END(main_cali);
             //print some info
             if(children == 2)
-               printf("Process %d sending data to processes %d, %d\n", n, leftChild, leftChild+1);
+               printf("Process %d sending data to processes %d, %d\n", n, leftChild, (leftChild+1)%numtasks);
             else if(children == 1)
                printf("Process %d sending data to process %d\n", n, leftChild);
             else if(children == 0)
@@ -312,7 +481,7 @@ int main (int argc, char *argv[])
             CALI_MARK_END(comm);
          }
       }
-   }
+   }*/
 
    if(taskid == MASTER) {
       CALI_MARK_BEGIN(correctness_check);
@@ -323,9 +492,9 @@ int main (int argc, char *argv[])
          exit(-1);
       }
       CALI_MARK_END(correctness_check);
+      CALI_MARK_END(main_cali); //moved this here so only the master task can end it/we get one time
    }
 
-   CALI_MARK_END(main_cali);
    double wholeMasterEnd = MPI_Wtime();
 
    if(taskid == MASTER) {
@@ -344,7 +513,7 @@ int main (int argc, char *argv[])
    adiak::value("input_size", sizeOfArray); // The number of elements in input dataset (1000)
    adiak::value("input_type", inputString); // For sorting, this would be choices: ("Sorted", "ReverseSorted", "Random", "1_perc_perturbed")
    adiak::value("num_procs", numtasks); // The number of processors (MPI ranks)
-   adiak::value("scalability", "todo"); // The scalability of your algorithm. choices: ("strong", "weak")
+   adiak::value("scalability", "weak"); // The scalability of your algorithm. choices: ("strong", "weak")
    adiak::value("group_num", 1); // The number of your group (integer, e.g., 1, 10)
    adiak::value("implementation_source", "handwritten"); // Where you got the source code of your algorithm. choices: ("online", "ai", "handwritten").
 
