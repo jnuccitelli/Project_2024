@@ -236,10 +236,19 @@ int main (int argc, char *argv[])
    MPI_Comm_rank(MPI_COMM_WORLD,&taskid);
    MPI_Comm_size(MPI_COMM_WORLD,&numtasks);
 
+   if(taskid == MASTER) {
+      printIntro(numtasks, sizeOfArray, inputType);
+   }
+
    CALI_MARK_BEGIN(main_cali);
    double wholeMasterStart = MPI_Wtime();
 
-   double* toSort;
+   CALI_MARK_BEGIN(data_init_runtime);
+   int chunkSize = sizeOfArray/numtasks; //we know that both proc num and size will be powers of 2, so every process will always get an array of the same size
+   double* arrChunk = generateArray(chunkSize, inputType); //although she mentioned sending elements across permuations, this is no different computationally than permuting the elements within an array
+   CALI_MARK_END(data_init_runtime);
+
+   /*
    if(taskid == MASTER) {
       printIntro(numtasks, sizeOfArray, inputType);
       CALI_MARK_BEGIN(data_init_runtime);
@@ -273,7 +282,7 @@ int main (int argc, char *argv[])
       chunkSize += remainder;
    }
    CALI_MARK_END(comp_large);
-   CALI_MARK_END(comp);
+   CALI_MARK_END(comp);*/
 
    CALI_MARK_END(main_cali);
    printf("Process %d sorting chunk...\n", taskid);
