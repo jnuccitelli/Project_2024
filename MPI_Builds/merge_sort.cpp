@@ -389,29 +389,37 @@ int main (int argc, char *argv[])
       CALI_MARK_END(comp_small);
       CALI_MARK_END(comp);
 
-      //send your parent your array
-      CALI_MARK_BEGIN(comm);
-      CALI_MARK_BEGIN(comm_small);
-      MPI_Send(&combinedSize, 1, MPI_INT, mergeParent, FROM_CHILD, MPI_COMM_WORLD);
-      CALI_MARK_END(comm_small);
-      CALI_MARK_BEGIN(comm_large);
-      MPI_Send(combined, leftSize+chunkSize, MPI_DOUBLE, mergeParent, FROM_CHILD, MPI_COMM_WORLD);
-      CALI_MARK_END(comm_large);
-      CALI_MARK_END(comm);
+      //send real parent the merged array if you aren't the master task
+      if(taskid != MASTER) {
+         CALI_MARK_BEGIN(comm);
+         CALI_MARK_BEGIN(comm_small);
+         MPI_Send(&combinedSize, 1, MPI_INT, mergeParent, FROM_CHILD, MPI_COMM_WORLD);
+         CALI_MARK_END(comm_small);
+         CALI_MARK_BEGIN(comm_large);
+         MPI_Send(combined, leftSize+chunkSize, MPI_DOUBLE, mergeParent, FROM_CHILD, MPI_COMM_WORLD);
+         CALI_MARK_END(comm_large);
+         CALI_MARK_END(comm);
+      } else {
+         sortedArr = combined;
+      }
    } else { //last element, leaf node
       int mergeParent = (taskid + taskid%2 - 2)/2;
       CALI_MARK_END(comp_small);
       CALI_MARK_END(comp);
 
-      //send your parent your array
-      CALI_MARK_BEGIN(comm);
-      CALI_MARK_BEGIN(comm_small);
-      MPI_Send(&chunkSize, 1, MPI_INT, mergeParent, FROM_CHILD, MPI_COMM_WORLD);
-      CALI_MARK_END(comm_small);
-      CALI_MARK_BEGIN(comm_large);
-      MPI_Send(arrChunk, chunkSize, MPI_DOUBLE, mergeParent, FROM_CHILD, MPI_COMM_WORLD);
-      CALI_MARK_END(comm_large);
-      CALI_MARK_END(comm);
+      //send real parent the merged array if you aren't the master task
+      if(taskid != MASTER) {
+         CALI_MARK_BEGIN(comm);
+         CALI_MARK_BEGIN(comm_small);
+         MPI_Send(&chunkSize, 1, MPI_INT, mergeParent, FROM_CHILD, MPI_COMM_WORLD);
+         CALI_MARK_END(comm_small);
+         CALI_MARK_BEGIN(comm_large);
+         MPI_Send(arrChunk, chunkSize, MPI_DOUBLE, mergeParent, FROM_CHILD, MPI_COMM_WORLD);
+         CALI_MARK_END(comm_large);
+         CALI_MARK_END(comm);
+      } else {
+         sortedArr = arrChunk;
+      }
    }
 
 
