@@ -61,26 +61,50 @@ int main (int argc, char *argv[])
     //now we find some splitters to send to our main process we find process count - 1 splitters !!
     std::vector<double> localSplitters; 
 
+    for(size_t i = 0; i < totalProcNum - 1; ++i){
+        localSplitters.push_back(array.at(i * (array.size() / (totalProcNum - 1))));
+    }
+
     if(taskId != MASTER){
         //send our local splitters to master
         int vsize = localSplitters.size();
         MPI_Send(&localSplitters[0],vsize , MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
     }
 
+    if(taskId == MASTER){
+
+        for(size_t i = 1; i < totalProcNum; ++i){
+            std::vector<double> recvBufSplitters; 
+            recvBufSplitters.resize(totalProcNum - 1);
+            MPI_Recv(&recvBufSplitters, totalProcNum - 1, MPI_DOUBLE, i, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+            for(auto splitter : recvBufSplitters){
+                localSplitters.push_back(splitter);
+            }
+        }   
+
+
+        std::sort(localSplitters.begin(), localSplitters.end());
+
+        std::vector<double> globalSplitters; 
+
+        for(size_t i = 0; i < totalProcNum - 1; ++i){
+            globalSplitters.push_back(localSplitters.at(i * (localSplitters.size() / (totalProcNum - 1))));
+        }
+
+        printf("Global Splitters made total amount is %d\n",globalSplitters.size());
+
+        for(auto globalSplit : globalSplitters){
+            printf("%d,",globalSplit);
+        }
+        printf("\n");
+
+
+
+    }
 
     
-    MPI_Scatter(array, sizeof(array)/nbuckets, MPI_DOUBLE,procArray, sizeof(array)/nbuckets, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-    //quick sort the samples
-    std::sort(procArray);
-    MPI_Gather(all quick sorted elements);
-    //select the splitters using quicksort each process will do this to avoid extra communication
-
-    //put each element in the bucket
-    for(i = 0; i < size/nbuckets; ++i){
-    correctBucket.insert(procArray[i]);
-    }
     //each process sorts each bucket using quick sort
-    std::sort(bucket);
+
 
     //array is sorted now
 }
