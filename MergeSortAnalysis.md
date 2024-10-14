@@ -78,7 +78,14 @@ These graphs show strong speedup and weak efficiency for the large computations 
 
 
 ## Comm: Average Time Spent Communicating Per Processor
+For the measurements for this section, we used Avg time/rank from the Cali file, which would be the average amount of time each task spends sending or receiving data from other tasks.
+
 ### Strong Scaling Plots
+These graphs are set up the same way as the strong scaling graphs for main, with the following observations:
+
+- For smaller problem sizes, the average time spent communicating increases as process count increases. However, like our graphs for main, the graphs start to show the expected trend with larger process sizes, which is a decrease in average communication time as process count increases. This seems counter-intuitive, as with more processes we would expect more communication. However, even though we do have more communication as more tasks are added, we end up having less communication time per processor. This is because the smaller operations that are present for more processes are not time-consuming enough to lead to the same amount of average work for the processes.
+- A strange feature of these graphs is the sharp increase from 2 to 4 processes. This is due to the structure of the program, which makes the communication between the last two processes more ideal than other communications. Because of this, the comm time for 2 processes is lower than that for 4+ processes, and thus it deviates from the trend. If I were to change my implementation so that this wasn't the case, this would be a smooth curve all the way through -- however, the original design I had and the changes I made do not have the most optimal communication.
+- Unlike main and comp, there is no relationship between input type and these graphs, which makes sense because the communication time does not consider the contents of the data it is sending, but rather just the data itself.
 ![comm_65536](/MergeSortGraphs/comm_65536.png)
 ![comm_262144](/MergeSortGraphs/comm_262144.png)
 ![comm_1048576](/MergeSortGraphs/comm_1048576.png)
@@ -86,7 +93,12 @@ These graphs show strong speedup and weak efficiency for the large computations 
 ![comm_16777216](/MergeSortGraphs/comm_16777216.png)
 ![comm_67108864](/MergeSortGraphs/comm_67108864.png)
 ![comm_268435456](/MergeSortGraphs/comm_268435456.png)
+
 ### Strong Speedup/Weak Efficiency Plots
+These graphs show strong speedup and weak efficiency for the communication between tasks in our program (such as send and receive). We can observe the following:
+
+- Like the other strong speedup graphs, the larger the problem, the better the speedup. However, these speedup graphs are nowhere near linear, and actually seem to be pretty constant/decrease to reach zero. This is because the communication, while it takes up slightly less time on average for more processes, definitely doesn't decrease efficiently for large sizes of N (and isn't meant to). The implementation of this algorithm focused mostly on achieving strong linear speedup for the computation portion (which is the expensive part of this problem), rather than minimizing communication time.
+- In the weak efficiency graphs, we see that these rapidly go to zero. Again, this is because the communication time isn't able to parallelize well for a merge sort algorithm - this is the feature that is bottlenecking the speedup of main. However, we can still observe that larger problem sizes have slightly larger values for efficiency, although not by much. This is also reflected in the strong speedup graphs, where larger problems exhibited better speedup.
 ![comm_permuted_strong_speedup](/MergeSortGraphs/comm_permuted_strong_speedup.png)
 ![comm_permuted_weak_efficiency](/MergeSortGraphs/comm_permuted_weak_efficiency.png)
 ![comm_random_strong_speedup](/MergeSortGraphs/comm_random_strong_speedup.png)
