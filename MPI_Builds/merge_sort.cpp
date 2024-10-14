@@ -57,17 +57,6 @@ double* combineSortedArrays(double* left, double* right, int leftSize, int right
   return returnArray;
 }
 
-/*int getChildCount(int id, int totalWorkers) {
-   int leftChild = 2*id+1;
-   if(leftChild + 1 < totalWorkers) {
-      return 2;
-   } else if(leftChild < totalWorkers) {
-      return 1;
-   } else {
-      return 0;
-   }
-}*/
-
 double* mergeSort(double* arr, int size) {
    if(size == 1) {
       return arr;
@@ -79,106 +68,6 @@ double* mergeSort(double* arr, int size) {
       return combineSortedArrays(leftSorted, rightSorted, leftSize, rightSize);
    }
 }
-
-/*double* startChildProcesses(int id, int childCount, double* arr, int arrSize) {
-   CALI_MARK_BEGIN(comp);
-   CALI_MARK_BEGIN(comp_small);
-   int leftSize = arrSize/2;
-   int rightSize = arrSize - leftSize;
-   MPI_Status status;
-   double* returnArr;
-   int firstChildId = 2*id+1;
-   if(childCount == 0) {
-      CALI_MARK_END(comp_small);
-      CALI_MARK_BEGIN(comp_large);
-      returnArr = mergeSort(arr, arrSize);
-      CALI_MARK_END(comp_large);
-      CALI_MARK_END(comp);
-      //printArray(returnArr, arrSize);
-      return returnArr;
-   } else if(childCount == 1) {
-      CALI_MARK_END(comp_small);
-      CALI_MARK_END(comp);
-      //send the left half of the array and its size to child for sorting
-      CALI_MARK_BEGIN(comm);
-      CALI_MARK_BEGIN(comm_small);
-      MPI_Send(&leftSize, 1, MPI_INT, firstChildId, FROM_PARENT, MPI_COMM_WORLD);
-      CALI_MARK_END(comm_small);
-      CALI_MARK_BEGIN(comm_large);
-      MPI_Send(arr, leftSize, MPI_DOUBLE, firstChildId, FROM_PARENT, MPI_COMM_WORLD);
-      CALI_MARK_END(comm_large);
-      CALI_MARK_END(comm);
-
-      //sort the right half of the array ourselves
-      CALI_MARK_BEGIN(comp);
-      CALI_MARK_BEGIN(comp_large);
-      double* rightSorted = mergeSort(arr+leftSize, rightSize);
-      CALI_MARK_END(comp_large);
-      CALI_MARK_END(comp);
-
-      //receive the sorted left half of the array from child
-      double leftSorted[leftSize];
-      CALI_MARK_BEGIN(comm);
-      CALI_MARK_BEGIN(comm_large);
-      MPI_Recv(&leftSorted, leftSize, MPI_DOUBLE, firstChildId, FROM_CHILD, MPI_COMM_WORLD, &status);
-      CALI_MARK_END(comm_large);
-      CALI_MARK_END(comm);
-
-      //combine and return the arrays
-      CALI_MARK_BEGIN(comp);
-      CALI_MARK_BEGIN(comp_large);
-      returnArr = combineSortedArrays(leftSorted, rightSorted, leftSize, rightSize);
-      CALI_MARK_END(comp_large);
-      CALI_MARK_END(comp);
-      //printf("Process %d sorted array: ", id);
-      //printArray(returnArr, arrSize);
-
-      delete[] rightSorted;
-      return returnArr;
-   } else { //2 children
-      CALI_MARK_END(comp_small);
-      CALI_MARK_END(comp);
-
-      //send the left half of the array and its size to child for sorting
-      CALI_MARK_BEGIN(comm);
-      CALI_MARK_BEGIN(comm_small);
-      MPI_Send(&leftSize, 1, MPI_INT, firstChildId, FROM_PARENT, MPI_COMM_WORLD);
-      CALI_MARK_END(comm_small);
-      CALI_MARK_BEGIN(comm_large);
-      MPI_Send(arr, leftSize, MPI_DOUBLE, firstChildId, FROM_PARENT, MPI_COMM_WORLD);
-      CALI_MARK_END(comm_large);
-
-      //send the right half of the array and its size to child for sorting
-      CALI_MARK_BEGIN(comm_small);
-      MPI_Send(&rightSize, 1, MPI_INT, firstChildId+1, FROM_PARENT, MPI_COMM_WORLD);
-      CALI_MARK_END(comm_small);
-      CALI_MARK_BEGIN(comm_large);
-      MPI_Send(arr + leftSize, rightSize, MPI_DOUBLE, firstChildId+1, FROM_PARENT, MPI_COMM_WORLD);
-      CALI_MARK_END(comm_large);
-      CALI_MARK_END(comm);
-
-      //receive the sorted arrays
-      CALI_MARK_BEGIN(comm);
-      CALI_MARK_BEGIN(comm_large);
-      double leftSorted[leftSize];
-      double rightSorted[rightSize];
-      MPI_Recv(&leftSorted, leftSize, MPI_DOUBLE, firstChildId, FROM_CHILD, MPI_COMM_WORLD, &status);
-      MPI_Recv(&rightSorted, leftSize, MPI_DOUBLE, firstChildId+1, FROM_CHILD, MPI_COMM_WORLD, &status);
-      CALI_MARK_END(comm_large);
-      CALI_MARK_END(comm);
-
-      //combine and return the arrays
-      CALI_MARK_BEGIN(comp);
-      CALI_MARK_BEGIN(comp_large);
-      returnArr = combineSortedArrays(leftSorted, rightSorted, leftSize, rightSize);
-      CALI_MARK_END(comp_large);
-      CALI_MARK_END(comp);
-      //printf("Process %d sorted array: ", id);
-      //printArray(returnArr, arrSize);
-      
-      return returnArr;
-   }
-}*/
 
 void printIntro(int numtasks, int sizeOfArray, int inputType) {
    if(inputType == RANDOM_INPUT)
