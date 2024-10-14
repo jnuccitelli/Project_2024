@@ -22,13 +22,12 @@
 
 //HELPER FUNCTIONS FOR RADIX SORT
 int* generateArray(int size, int inputType, int processorNumber, int totalProcesses) {
-    srand(std::time(0)); //give rand a random seed so we get different answers each time
     int* arr = new int[size];
 
     //random input
     if(inputType == RANDOM_INPUT) {
         for(int i = 0; i < size; i++) {
-            arr[i] = rand(); //generates random ints
+            arr[i] = rand() % 10000; //generates random ints
         }
         return arr;
     } 
@@ -37,9 +36,10 @@ int* generateArray(int size, int inputType, int processorNumber, int totalProces
     else if(inputType == SORTED_INPUT) {
         int lastVal = 0;
         for(int i = 0; i < size; i++) {
-            int newVal = ((rand() % 100) / 10) + lastVal + (size * processorNumber * 10);
+            int newVal = ((rand() % 100) / 10) + lastVal;
             arr[i] = newVal; //generates ints from the last value to 10+last value
             lastVal = newVal;
+            arr[i] += (size * processorNumber * 10); //offset for processor id
         }
         return arr;
     } 
@@ -48,9 +48,10 @@ int* generateArray(int size, int inputType, int processorNumber, int totalProces
     else if(inputType == REVERSE_SORTED_INPUT) {
         int lastVal = 0;
         for(int i = size-1; i >= 0; i--) {
-            double newVal = ((rand() % 100) / 10) + lastVal + (size * (totalProcesses - processorNumber) * 10);
+            double newVal = ((rand() % 100) / 10) + lastVal;
             arr[i] = newVal; 
             lastVal = newVal;
+            arr[i] += (size * (totalProcesses - processorNumber) * 10); //offset for processor id
         }
         return arr;
     } 
@@ -60,15 +61,16 @@ int* generateArray(int size, int inputType, int processorNumber, int totalProces
         //create sorted array
         int lastVal = 0;
         for(int i = 0; i < size; i++) {
-            int newVal = ((rand() % 100) / 10) + lastVal + (size * processorNumber * 10);
-            arr[i] = newVal; 
+            int newVal = ((rand() % 100) / 10) + lastVal;
+            arr[i] = newVal; //generates ints from the last value to 10+last value
             lastVal = newVal;
+            arr[i] += (size * processorNumber * 10); //offset for processor id
         }
 
         //randomly update 1% of elements
         for (int i =0; i < size; ++i) {
             if (rand() % 100 == 0) {
-                arra[i] = rand();
+                arr[i] = rand();
             }
         }
 
@@ -114,31 +116,159 @@ int main (int argc, char *argv[]) {
 
     int taskid;
     int numTasks;
+    int numLocalZeroes;
+    int numLocalOnes;
+    int numTotalZeores;
+    int numPrevZeroes;
+    int numPrevOnes;
+    int numPrevZeroesBuf;
+    int numPrevOnesBuf;
+    int position;
+    int destProc;
+    int destPos;
+
+    MPI_Status status;
 
     MPI_Init(&argc,&argv);
     MPI_Comm_rank(MPI_COMM_WORLD,&taskid);
     MPI_Comm_size(MPI_COMM_WORLD,&numTasks);
 
     int* arr = generateArray(sizeOfArray, inputType, taskid, numTasks);
-    printArray(arr, sizeOfArray, taskid);
+
+    //Print starting arrays
+    int rank = 0;
+    while (rank < numTasks) {
+        if (rank == taskid) {
+            if (rank == 0) {
+                printf("Starting Arrays\n");
+            }
+            printArray(arr, sizeOfArray, taskid);
+            fflush (stdout);
+        }
+        rank++;
+        MPI_Barrier(MPI_COMM_WORLD);
+    }
+
+    for (int i = 0; i < 1; ++i) {
+
+
+        //performing a local counting sort
+        int countingArray[2] = {0, 0};
+
+        for (int j = 0; j < sizeOfArray; ++j) {
+            countingArray[(arr[j] >> i) & 1]++;
+        }
+        countingArray[1] += countingArray[0];
+        numLocalZeroes = countingArray[0];
+
+        int* newArr = new int[sizeOfArray];
+
+        for (int j = sizeOfArray - 1; j >= 0; --j) {
+            newArr[countingArray[(arr[j] >> i) & 1] - 1] = arr[j];
+            countingArray[(arr[j] >> i) & 1]--;
+        }
+
+        delete[] arr;
+        arr = newArr;
+
+        printf("process: %d copied elements\n", taskid);
+        
+
+        //Get total number of 0s to all processes
+        numLocalOnes = sizeOfArray - numLocalZeroes;
+        printf("process: %d, numZeroes: %d, numOnes: %d\n", taskid, numLocalZeroes, numLocalOnes);
+
+        
+        for (int j = 0; j < numTasks; j++) {
+            MPI_Reduce(&numLocalZeroes, &numTotalZeores, 1, MPI_INT, MPI_SUM, j, MPI_COMM_WORLD);
+        }
+        printf("process: %d, totalNumZeroes: %d\n", taskid, numTotalZeores);
+
+        //Get the previous numbers of 0s and 1s to determine placement
+        numPrevZeroes = 0;
+        numPrevOnes = 0;
+        for (int j = 0; j < numTasks; ++j) {
+            if (j == taskid) {
+                for (int k = taskid + 1; k < numTasks; ++k) {
+                    MPI_Send(&numLocalZeroes, 1, MPI_INT, k, 1, MPI_COMM_WORLD);
+                    MPI_Send(&numLocalOnes, 1, MPI_INT, k, 1, MPI_COMM_WORLD);
+                }
+            }
+            else {
+                if (j < taskid) {
+                    MPI_Recv(&numPrevZeroesBuf, 1, MPI_INT, j, 1, MPI_COMM_WORLD, &status);
+                    MPI_Recv(&numPrevOnesBuf, 1, MPI_INT, j, 1, MPI_COMM_WORLD, &status);
+                    numPrevZeroes += numPrevZeroesBuf;
+                    numPrevOnes += numPrevOnesBuf;
+                }
+            }
+        }
+        printf("process: %d, prevNumZeroes: %d, prevNumOnes: %d\n", taskid, numPrevZeroes, numPrevOnes);
+
+        //Move elements to their sorted arrays
+        int* newSortedArr = new int[sizeOfArray];
+        int destProcArray[sizeOfArray];
+        int destPosArray[sizeOfArray];
+        // MPI_Win win;
+        // MPI_Win_create(&newSortedArr, (MPI_Aint)sizeOfArray * sizeof(int), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win);
+
+        for (int j = 0; j < sizeOfArray; ++j) {
+            if ((int) ((arr[j] >> i) & 1) == 0) {
+                position = j + numPrevZeroes;
+                //printf("position: %d, j: %d, numPrevZeroes: %d\n", position, j, numPrevZeroes);
+            }
+            else {
+                position = j + numTotalZeores + numPrevOnes - numLocalZeroes;
+            }
+            destProcArray[j] = position / sizeOfArray;
+            destPosArray[j] = position % sizeOfArray;
+        }
+
+        for (int j = 0; j < sizeOfArray; ++j) {
+            for (int k = 0; k < numTasks; ++k) {
+                
+
+            }
+        }
+            
+        // MPI_Barrier(MPI_COMM_WORLD);
+        // for (int l = 0; l < numTasks; ++l) {
+        //     MPI_Win_fence(0, win);
+        //     if (l == taskid) {
+        //         for (int j = 0; j < sizeOfArray; ++j) {
+        //             printf("process: %d, element: %d, position: %d, destProc: %d, destPos: %d\n", taskid, arr[j], destProcArray[j] * sizeOfArray + destPosArray[j], destProcArray[j], destPosArray[j]);
+        //             MPI_Put(&(arr[j]), 1, MPI_INT, destProcArray[j], (MPI_Aint)destPosArray[j], 1, MPI_INT, win);
+        //         }
+        //     }
+        //     MPI_Barrier(MPI_COMM_WORLD);
+        //     MPI_Win_fence(0, win);
+        // }
+        delete[] arr;
+        arr = newSortedArr;
+        
+    }
+
+
+    //Print finished arrays
+    rank = 0;
+    while (rank < numTasks) {
+        if (rank == taskid) {
+            if (rank == 0) {
+                printf("Finished Arrays\n");
+            }
+            printArray(arr, sizeOfArray, taskid);
+            fflush (stdout);
+        }
+        rank++;
+        MPI_Barrier(MPI_COMM_WORLD);
+    }
 
     MPI_Finalize();
 }
-// int arraySize = user input for array size
-// int procNum
-// int taskId
 
-// MPI_Init(&argc,&argv)
-// MPI_Comm_rank(MPI_COMM_WORLD,&taskid)
-// MPI_Comm_size(MPI_COMM_WORLD,&procNum)
 
-// int totalArray[arraySize]
 
-// //Generate the array
-// for (i in procNum) {
-//   int offset = arraySize / ProcNum * taskId
-//   totalArray[from offset to (offset + (arraySize/ProcNum)] = Array generation
-// }
+
 
 // //sort the array
 // for (i in numBits of type) {
