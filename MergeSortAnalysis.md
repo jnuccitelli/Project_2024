@@ -63,8 +63,10 @@ These graphs are set up the same way as the strong scaling graphs for main, with
 ### Strong Speedup/Weak Efficiency Plots
 These graphs show strong speedup and weak efficiency for the large computations in our program (such as one-processor merge sort and merging sorted arrays). We can observe the following:
 
-- There is a strange bump on the weak efficiency graphs for 256 processors. This may be for a number of reasons, but I ran this test at a different time than some of the others so it may just have been network conditions.
-- The weak efficiency is pretty consistent and close to 1, but starts to decrease slightly as the process count gets large. There is also a sharp (but small) decrease for the first few processor numbers, which may just be because the additional computations to merge/
+- There is a strange bump on the weak efficiency graphs for 256 processors. This may be for a number of reasons, but I ran this test at a different time than some of the others so it may just have been network conditions, or it may be that the architecture distributes the processes differently for 256 processes (across nodes/tasks).
+- The weak efficiency is pretty consistent and close to 1, but starts to decrease slightly as the process count gets large. This shows that at least for our computation steps, this program is pretty well parallelized (e.g. the amount of time to double the problem size with double the processors remains about constant).
+- The strong speedup is close to linear, but the smaller the problem size, the more it starts to deviate from that linearity. This is  because, past a certain point, the amount of work each task does becomes so small that the added processors don't add as much efficiency. This is also why we see a slight decrease in weak efficiency with an increasing process count.
+- Once again, there are no huge differences between the types of inputs for efficiency. In addition, just like for main, the larger problem sizes tend to hold the desired trends (linearity and weak efficiency = 1) better, as demonstrated by the lines being roughly in order of problem size.
 ![comp_large_permuted_strong_speedup](/MergeSortGraphs/comp_large_permuted_strong_speedup.png)
 ![comp_large_permuted_weak_efficiency](/MergeSortGraphs/comp_large_permuted_weak_efficiency.png)
 ![comp_large_random_strong_speedup](/MergeSortGraphs/comp_large_random_strong_speedup.png)
