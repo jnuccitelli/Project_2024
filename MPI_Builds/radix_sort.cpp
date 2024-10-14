@@ -124,7 +124,6 @@ int main (int argc, char *argv[]) {
     int numPrevZeroesBuf;
     int numPrevOnesBuf;
     int position;
-    int destProc;
     int destPos;
 
     MPI_Status status;
@@ -206,11 +205,10 @@ int main (int argc, char *argv[]) {
         printf("process: %d, prevNumZeroes: %d, prevNumOnes: %d\n", taskid, numPrevZeroes, numPrevOnes);
 
         //Move elements to their sorted arrays
-        int* newSortedArr = new int[sizeOfArray + 1];
+        int* newSortedArr = new int[sizeOfArray];
         int destProcArray[sizeOfArray];
         int destPosArray[sizeOfArray];
-        MPI_Win win;
-        MPI_Win_create(&newSortedArr, ((MPI_Aint)sizeOfArray + 1) * sizeof(int), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win);
+        bool isHere[sizeOfArray] = {0};
 
         for (int j = 0; j < sizeOfArray; ++j) {
             if ((int) ((arr[j] >> i) & 1) == 0) {
@@ -222,29 +220,31 @@ int main (int argc, char *argv[]) {
             }
             destProcArray[j] = position / sizeOfArray;
             destPosArray[j] = position % sizeOfArray;
+
+            if (destProcArray[j] == taskid) {
+                newSortedArr[destPosArray[j]] = arr[j];
+                isHere[destPosArray[j]] = 1;
+            }
         }
 
-            
-        MPI_Barrier(MPI_COMM_WORLD);
-        for (int l = 0; l < 1; ++l) {
-            MPI_Win_fence(0, win);
-            MPI_Barrier(MPI_COMM_WORLD);
-            printf("Process %d, l %d\n", taskid, l);
-            if (l == taskid) {
-                printf("Starting process %d copy\n", l);
-                for (int j = 0; j < sizeOfArray; ++j) {
-                    if (destProcArray[j] != taskid) {
-                        printf("process: %d, element: %d, position: %d, destProc: %d, destPos: %d\n", taskid, arr[j], destProcArray[j] * sizeOfArray + destPosArray[j], destProcArray[j], destPosArray[j]);
-                        MPI_Put(&(arr[j]), 1, MPI_INT, destProcArray[j], (MPI_Aint)destPosArray[j], 1, MPI_INT, win);
+        for (int j = 0; j < sizeOfArray; ++j) {
+            for (int k = 0; k < numTasks; ++k) {
+                for (int l = 0; l < sizeOfArray; ++l) {
+                    if (k == destProcArray[l] && k != taskid && j == destPosArray[l]) {
+                        MPI_Send(&destPosArray[l], 1, MPI_INT, k, 1, MPI_COMM_WORLD);
+                        MPI_Send(&arr[l], 1, MPI_INT, k, 2, MPI_COMM_WORLD);
+
                     }
                 }
-                fflush (stdout);
+                if (k == taskid && isHere[j] == 0) {
+                    MPI_Recv(&destPos, 1, MPI_INT, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, &status);
+                    MPI_Recv(&newSortedArr[j], 1, MPI_INT, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, & status);
+                }
             }
-            MPI_Barrier(MPI_COMM_WORLD);
-            MPI_Win_fence(0, win);
         }
-        MPI_Barrier(MPI_COMM_WORLD);
-        MPI_Win_free(&win);
+
+
+
         delete[] arr;
         arr = newSortedArr;
         
