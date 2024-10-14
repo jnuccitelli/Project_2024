@@ -427,3 +427,9 @@ int main(int argc, char** argv) {
 - Compare different parallelization strategies (master/worker vs SPMD)
 - Compare different input sizes with both strong and weak scaling (so increasing the input size with and without increasing the number of processes)
 - Compare different input types; Randomly generated, already sorted, sorted in reverse, sorted with 1% permuted
+
+## 3. Descriptions of Implemented Algorithms
+In this section, we will discuss the ways we implemented our various sorting algorithms, such as how they communicate, how the computation workload is split, etc.
+
+### Merge Sort - Ariela
+My merge sort implementation was similar to my pseudocode, but after running analysis on the algorithm, I realized that I wasn't using the processors as efficiently as I could have. To fix this, I distributed the work evenly over all of the nodes by having them each generate their own data and sort it, then used the original parent-child hierarchy to determine which nodes should be executing the merge. Essentially, every node starts with an array of length totalArraySize/numNodes, sorts that, and then sends the sorted array to a specific task that will be responsible for merging the arrays together. Thus, in every step there are half the amount of processes working as there were in the previous step, which is the maximum amount of processes that can be working at one time for merge sort. 
