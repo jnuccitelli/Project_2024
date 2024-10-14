@@ -248,42 +248,6 @@ int main (int argc, char *argv[])
    double* arrChunk = generateArray(chunkSize, inputType); //although she mentioned sending elements across permuations, this is no different computationally than permuting the elements within an array
    CALI_MARK_END(data_init_runtime);
 
-   /*
-   if(taskid == MASTER) {
-      printIntro(numtasks, sizeOfArray, inputType);
-      CALI_MARK_BEGIN(data_init_runtime);
-      toSort = generateArray(sizeOfArray, inputType);
-      CALI_MARK_END(data_init_runtime);
-   }
-
-   CALI_MARK_BEGIN(comp);
-   CALI_MARK_BEGIN(comp_small);
-   int chunkSize = sizeOfArray/numtasks;
-   int remainder = sizeOfArray%numtasks;
-   CALI_MARK_END(comp_small);
-   CALI_MARK_END(comp);
-
-   double* arrChunk = new double[chunkSize + remainder]; //in case we have extra elements we have room for them
-
-   //scatter a chunk of the array to each task
-   CALI_MARK_BEGIN(comm);
-   CALI_MARK_BEGIN(comm_large);
-   MPI_Scatter(toSort, chunkSize, MPI_DOUBLE, arrChunk, chunkSize, MPI_DOUBLE, 0, MPI_COMM_WORLD); //todo not divisible
-   CALI_MARK_END(comm_large);
-   CALI_MARK_END(comm);
-
-   //put the remainder into the master buffer
-   CALI_MARK_BEGIN(comp);
-   CALI_MARK_BEGIN(comp_large);
-   if(remainder != 0 && taskid == MASTER) {
-      for(int i = 0; i < remainder; i++) {
-         arrChunk[chunkSize+i] = toSort[chunkSize*numtasks+i];
-      }
-      chunkSize += remainder;
-   }
-   CALI_MARK_END(comp_large);
-   CALI_MARK_END(comp);*/
-
    CALI_MARK_END(main_cali);
    printf("Process %d sorting chunk...\n", taskid);
    CALI_MARK_BEGIN(main_cali);
@@ -421,84 +385,6 @@ int main (int argc, char *argv[])
          sortedArr = arrChunk;
       }
    }
-
-
-   /*for(int n = 0; n < numtasks; n++){
-      if(taskid == n) {
-         if(taskid == MASTER) { //only our first array initializes the array to be sorted
-            CALI_MARK_END(main_cali);
-            printIntro(numtasks, sizeOfArray, inputType);
-            CALI_MARK_BEGIN(main_cali);
-
-            CALI_MARK_BEGIN(comp);
-            CALI_MARK_BEGIN(comp_small);
-            int children = getChildCount(n, numtasks+twoKids);
-            CALI_MARK_END(comp_small);
-            CALI_MARK_END(comp);
-
-            CALI_MARK_BEGIN(data_init_runtime);
-            double* toSort = generateArray(sizeOfArray, inputType);
-            CALI_MARK_END(data_init_runtime);
-            //printf("****************************\nINITIAL ARRAY: \n");
-            //printArray(toSort, sizeOfArray);
-            //printf("****************************\n\n");
-            CALI_MARK_END(main_cali);
-            if(children == 2)
-               printf("Process %d sending data to processes %d, %d\n", n, n+1, n+2);
-            else if(children == 1)
-               printf("Process %d sending data to process %d\n", n, n+1);
-            else if(children == 0)
-               printf("Process %d is leaf node; Calculating...\n", n);
-
-            CALI_MARK_BEGIN(main_cali);
-            sortedArr = startChildProcesses(n, children, toSort, sizeOfArray);
-         } else {
-            CALI_MARK_BEGIN(comp);
-            CALI_MARK_BEGIN(comp_small);
-            int children = getChildCount(n, numtasks+twoKids);
-            int leftChild = (2*n+1)%numtasks;
-            
-            int parentId = (n + n%2 - 2)/2; //(n-1)/2 if odd, (n-2)/2 if even
-            int toSortSize;
-            CALI_MARK_END(comp_small);
-            CALI_MARK_END(comp);
-            
-            //get array and its size from parent process
-            CALI_MARK_BEGIN(comm);
-            CALI_MARK_BEGIN(comm_small);
-            MPI_Recv(&toSortSize, 1, MPI_INT, parentId, FROM_PARENT, MPI_COMM_WORLD, &status);
-            CALI_MARK_END(comm_small);
-            CALI_MARK_END(comm);
-
-            double toSort[toSortSize];
-
-            CALI_MARK_BEGIN(comm);
-            CALI_MARK_BEGIN(comm_large);
-            MPI_Recv(&toSort, toSortSize, MPI_DOUBLE, parentId, FROM_PARENT, MPI_COMM_WORLD, &status);
-            CALI_MARK_END(comm_large);
-            CALI_MARK_END(comm);
-
-            CALI_MARK_END(main_cali);
-            //print some info
-            if(children == 2)
-               printf("Process %d sending data to processes %d, %d\n", n, leftChild, (leftChild+1)%numtasks);
-            else if(children == 1)
-               printf("Process %d sending data to process %d\n", n, leftChild);
-            else if(children == 0)
-               printf("Process %d is leaf node; Calculating...\n", n);
-
-            CALI_MARK_BEGIN(main_cali);
-            //start child processes and receive sorted array
-            double* sorted = startChildProcesses(n, children, toSort, toSortSize);
-            //send sorted array back to parent process; they already know the size
-            CALI_MARK_BEGIN(comm);
-            CALI_MARK_BEGIN(comm_large);
-            MPI_Send(sorted, toSortSize, MPI_DOUBLE, parentId, FROM_CHILD, MPI_COMM_WORLD);
-            CALI_MARK_END(comm_large);
-            CALI_MARK_END(comm);
-         }
-      }
-   }*/
 
    if(taskid == MASTER) {
       CALI_MARK_BEGIN(correctness_check);
