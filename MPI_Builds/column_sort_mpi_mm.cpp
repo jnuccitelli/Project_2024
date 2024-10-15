@@ -29,6 +29,17 @@ int main (int argc, char *argv[])
     double matrix[sizeOfMatrix][sizeOfMatrix], resultmatrix[sizeOfMatrix][sizeOfMatrix];           
     MPI_Status status;
 
+    /* Define Caliper region names */
+    const char* main_cali = "main";
+    const char* data_init_runtime = "data_init_runtime";
+    const char* correctness_check = "correctness_check";
+    const char* comm = "comm";
+    const char* comm_small = "comm_small";
+    const char* comm_large = "comm_large";
+    const char* comp = "comp";
+    const char* comp_small = "comp_small";
+    const char* comp_large = "comp_large";
+
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &taskid);
     MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
@@ -45,13 +56,14 @@ int main (int argc, char *argv[])
     cali::ConfigManager mgr;
     mgr.start();
 
-
+    CALI_MARK_BEGIN(main_cali);
     /**************************** master task ************************************/
     if (taskid == MASTER)
     {
         printf("mpi_mm has started with %d tasks.\n", numtasks);
         printf("Initializing matrix...\n");
 
+        CALI_MARK_BEGIN(data_init_runtime);
         // Initialize the matrix with reverse sorted values
         int array[sizeOfMatrix * sizeOfMatrix];
         for (i = 0; i < (sizeOfMatrix * sizeOfMatrix); i++) {
@@ -65,7 +77,10 @@ int main (int argc, char *argv[])
                 p--;
             }
         }
+        CALI_MARK_BEGIN(data_init_runtime);
 
+        CALI_MARK_BEGIN(comm);
+        CALI_MARK_BEGIN(comm_small);
         // Matrix distribution to workers------ ROWS
         averow = sizeOfMatrix / numworkers;
         extra = sizeOfMatrix % numworkers;
@@ -91,7 +106,8 @@ int main (int argc, char *argv[])
             printf("Received results from task %d\n", source);
         }
 
-
+        CALI_MARK_END(comm_small);
+        CALI_MARK_END(comm);
         // Print the result matrix
         printf("******************************************************\n");
         printf("Result Matrix:\n");
@@ -112,11 +128,18 @@ int main (int argc, char *argv[])
         int offset, rows;
         mtype = FROM_MASTER;
 
+        CALI_MARK_BEGIN(comm);
+        CALI_MARK_BEGIN(comm_large);
         // Receive matrix slice from master
         MPI_Recv(&offset, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD, &status);
         MPI_Recv(&rows, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD, &status);
         MPI_Recv(&matrix, rows * sizeOfMatrix, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD, &status);
 
+       CALI_MARK_END(comm_large);
+       CALI_MARK_END(comm);
+
+        CALI_MARK_BEGIN(comp);
+        CALI_MARK_BEGIN(comp_large);
         // Step 1: Sort each column of the original matrix
         for (int col = 0; col < sizeOfMatrix; col++) {
             for (int i = 0; i < rows - 1; i++) {
@@ -130,6 +153,9 @@ int main (int argc, char *argv[])
             }
         }
         
+        CALI_MARK_END(comp_large);
+        CALI_MARK_BEGIN(comp_small);
+
         int transposed[sizeOfMatrix][rows];  // Transposed matrix for temporary storage
 
         // Step 2: Transpose the matrix
@@ -138,6 +164,9 @@ int main (int argc, char *argv[])
                 transposed[j][i] = matrix[i][j];
             }
         }
+            
+        CALI_MARK_END(comp_small);
+        CALI_MARK_BEGIN(comp_large);
 
 
         // Step 3: Sort each column of the transposed matrix
@@ -153,12 +182,18 @@ int main (int argc, char *argv[])
             }
         }
 
+        CALI_MARK_END(comp_large);
+        CALI_MARK_BEGIN(comp_small);
+
         // Step 4: Transpose back to the original form
         for (int i = 0; i < sizeOfMatrix; i++) {
             for (int j = 0; j < rows; j++) {
                 matrix[j][i] = transposed[i][j];
             }
         }
+
+        CALI_MARK_END(comp_small);
+        CALI_MARK_BEGIN(comp_large);
 
         // Step 5: Sort each column again in the original matrix
         for (int col = 0; col < sizeOfMatrix; col++) {
@@ -172,7 +207,18 @@ int main (int argc, char *argv[])
                 }
             }
         }
+
+        // Step 6: Transpose back to the original form
+        for (int i = 0; i < sizeOfMatrix; i++) {
+            for (int j = 0; j < rows; j++) {
+                matrix[j][i] = transposed[i][j];
+            }
+        }
         
+    CALI_MARK_END(comp_large);
+    CALI_MARK_END(comp);
+    CALI_MARK_BEGIN(correctness_check);
+
         double max = -1;
         int flag = 0;
         for (int i = 0; i < rows; i++) {
@@ -187,16 +233,20 @@ int main (int argc, char *argv[])
         if (flag == 0 && rows > 0) {
             printf("The result matrix is sorted\n");
         }
+    CALI_MARK_END(correctness_check);
+    CALI_MARK_BEGIN(comm);
+    CALI_MARK_BEGIN(comm_large);
 
             // Send results back to the master
             mtype = FROM_WORKER;
             MPI_Send(&offset, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD);
             MPI_Send(&rows, 1, MPI_INT, MASTER, mtype, MPI_COMM_WORLD);
             MPI_Send(&matrix, rows * sizeOfMatrix, MPI_DOUBLE, MASTER, mtype, MPI_COMM_WORLD);
-        }
 
+    CALI_MARK_END(comm_large);
+    CALI_MARK_END(comm);
     // WHOLE PROGRAM COMPUTATION PART ENDS HERE
-
+    CALI_MARK_END(main_cali);
     // Finalize Caliper and MPI
     mgr.stop();
     mgr.flush();
