@@ -8,6 +8,7 @@
 ******************************************************************************/
 #include "mpi.h"
 #include "helpers.h"
+//#include "sampleHelpers.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -33,7 +34,6 @@ int main (int argc, char *argv[])
    int sizeOfArray; 
    int inputType;
    MPI_Status status;
-   std::string inputString;
 
    cali::ConfigManager mgr;
 
@@ -64,6 +64,7 @@ int main (int argc, char *argv[])
     //create an array of array size / proc count
 
     std::vector<double> array;
+    //sampleHelpers::generateArray(inputType,array);
     srand(std::time(0));
     for(size_t i = 0; i  < sizeOfArray / totalProcNum; ++i){
         array.push_back((rand() % 1000) / 10.0);
@@ -158,6 +159,9 @@ int main (int argc, char *argv[])
     CALI_MARK_BEGIN(comp);
     //each process sorts each bucket using quick sort
     std::sort(localBucket.begin(),localBucket.end());
+    printf("Im task %d and my min is %f\n",taskId,localBucket.at(0));
+
+    //sampleHelpers::checkSort(localBucket,taskId);
    CALI_MARK_END(comp);
    CALI_MARK_END(main_cali);
    adiak::init(NULL);
