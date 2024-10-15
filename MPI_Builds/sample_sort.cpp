@@ -143,7 +143,7 @@ int main (int argc, char *argv[])
         else{
             int localBucketSize = buckets.at(i).size();
             MPI_Send(&localBucketSize,1 , MPI_INT, i, 0, MPI_COMM_WORLD);
-            MPI_Send(&buckets.at(i), localBucketSize,MPI_DOUBLE,i,0,MPI_COMM_WORLD);
+            MPI_Send(&buckets.at(i)[0], localBucketSize,MPI_DOUBLE,i,0,MPI_COMM_WORLD);
 
             int remoteVectorSize = 0;
             MPI_Recv(&remoteVectorSize,1 , MPI_INT, i, 0, MPI_COMM_WORLD,&status);    
