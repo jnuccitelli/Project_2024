@@ -109,3 +109,12 @@ These graphs show strong speedup and weak efficiency for the communication betwe
 ![comm_reversed_weak_efficiency](/MergeSortGraphs/comm_reversed_weak_efficiency.png)
 ![comm_sorted_strong_speedup](/MergeSortGraphs/comm_sorted_strong_speedup.png)
 ![comm_sorted_weak_efficiency](/MergeSortGraphs/comm_sorted_weak_efficiency.png)
+
+
+## Possible Optimizations Missed
+After running all of my analysis and looking at my code structure, I determined a few optimizations that could be done to make my code more efficient. When I discussed with the professor, she said that while I didn't have to rerun my code/regenerate my graphs, I should discuss some of these optimizations in this analysis to see how I could improve my algorithm for future work. The changes I would make to optimize this are the following:
+
+- Generate a universally sorted array (all of the data on P0 is less than all of the data on P1, etc), and implement an in-order merge that takes two sorted arrays where all of one is strictly greater than all of the other. This would make the merge step much faster if we add a condition that one array in the merge is always strictly less than the other because we would only have one comparison to do.
+- To make the above optimization possible, we would also have to send the data to the same task(s) as long as possible. My current implementation sends data from two different nodes to a third node, but a more efficient way to do this would be to have the merge happen on one of the nodes with data, reducing the amount of data that needs to be sent per merge step by half. To do this, process A would merge itself with process B rather than process C merging process B and process A together.
+
+However, aside from these optimizations, my merge sort is fairly efficient, even in the computation step which exhibits almost strong scaling. Merge sort isn't a perfectly parallelizable algorithm due to the communication overhead, but this implementation exhibits/explains the required trends.
