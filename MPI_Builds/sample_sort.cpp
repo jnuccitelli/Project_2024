@@ -119,14 +119,22 @@ int main (int argc, char *argv[])
     //put each element in correct local bucket
     std::vector<std::vector<double>> buckets;
     buckets.resize(totalProcNum);
+
     for(size_t i = 0; i < array.size(); ++i){
-        for(size_t j = 0; j < globalSplitters.size(); ++j){
-            if(array.at(i) < globalSplitters.at(j)){
+        for(size_t j = 0; j < globalSplitters.size() + 1; ++j){
+
+            if(j == globalSplitters.size()){
+                buckets.at(j).push_back(array.at(i));
+            }
+
+            else if(array.at(i) < globalSplitters.at(j)){
                 buckets.at(j).push_back(array.at(i));
             }
         }
     }
     
+
+
     CALI_MARK_END(comp);
     CALI_MARK_BEGIN(comm);
 
@@ -137,21 +145,26 @@ int main (int argc, char *argv[])
             // if this is our own bucket copy the elements over
             for(auto ele : buckets.at(i)){
                 localBucket.push_back(ele);
-            }            
+            }          
+
         }
         //else send the elements
         else{
             int localBucketSize = buckets.at(i).size();
-            MPI_Send(&localBucketSize,1 , MPI_INT, i, 0, MPI_COMM_WORLD);
-            MPI_Send(&buckets.at(i)[0], localBucketSize,MPI_DOUBLE,i,0,MPI_COMM_WORLD);
+            MPI_Send(&localBucketSize, 1 , MPI_INT, i, 0, MPI_COMM_WORLD);
+            if(localBucketSize != 0){
+                MPI_Send(&buckets.at(i)[0], localBucketSize,MPI_DOUBLE,i,0,MPI_COMM_WORLD);
+            }
 
             int remoteVectorSize = 0;
             MPI_Recv(&remoteVectorSize,1 , MPI_INT, i, 0, MPI_COMM_WORLD,&status);    
             std::vector<double> remoteVector;
             remoteVector.resize(remoteVectorSize);
-            MPI_Recv(&remoteVector[0],remoteVectorSize , MPI_DOUBLE, i, 0, MPI_COMM_WORLD,&status);
-            for(auto ele : remoteVector){
-                localBucket.push_back(ele);
+            if(remoteVectorSize != 0){
+                MPI_Recv(&remoteVector[0],remoteVectorSize , MPI_DOUBLE, i, 0, MPI_COMM_WORLD,&status);
+                for(auto ele : remoteVector){
+                    localBucket.push_back(ele);
+                }  
             }
         }
     }
@@ -159,11 +172,15 @@ int main (int argc, char *argv[])
     CALI_MARK_BEGIN(comp);
     //each process sorts each bucket using quick sort
     std::sort(localBucket.begin(),localBucket.end());
+    if(localBucket.size() != 0){
     printf("Im task %d and my min is %f\n",taskId,localBucket.at(0));
+    }
 
     //sampleHelpers::checkSort(localBucket,taskId);
    CALI_MARK_END(comp);
    CALI_MARK_END(main_cali);
+
+   
    adiak::init(NULL);
    adiak::launchdate();    // launch date of the job
    adiak::libraries();     // Libraries used
@@ -174,8 +191,8 @@ int main (int argc, char *argv[])
    adiak::value("data_type", "double"); // The datatype of input elements (e.g., double, int, float)
    adiak::value("size_of_data_type", sizeof(double)); // sizeof(datatype) of input elements in bytes (e.g., 1, 2, 4)
    adiak::value("input_size", sizeOfArray); // The number of elements in input dataset (1000)
-   adiak::value("input_type", inputString); // For sorting, this would be choices: ("Sorted", "ReverseSorted", "Random", "1_perc_perturbed")
-   adiak::value("num_procs", numtasks); // The number of processors (MPI ranks)
+   adiak::value("input_type",  "Random"); // For sorting, this would be choices: ("Sorted", "ReverseSorted", "Random", "1_perc_perturbed")
+   adiak::value("num_procs", totalProcNum); // The number of processors (MPI ranks)
    adiak::value("scalability", "strong"); // The scalability of your algorithm. choices: ("strong", "weak")
    adiak::value("group_num", 1); // The number of your group (integer, e.g., 1, 10)
    adiak::value("implementation_source", "handwritten"); // Where you got the source code of your algorithm. choices: ("online", "ai", "handwritten").
@@ -184,6 +201,6 @@ int main (int argc, char *argv[])
    mgr.stop();
    mgr.flush();
 
-    MPI_Finalize();
+   MPI_Finalize();
 }
 
