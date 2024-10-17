@@ -248,6 +248,23 @@ int main (int argc, char *argv[])
     // WHOLE PROGRAM COMPUTATION PART ENDS HERE
     CALI_MARK_END(main_cali);
     // Finalize Caliper and MPI
+
+    adiak::init(NULL);
+    adiak::launchdate();    // launch date of the job
+    adiak::libraries();     // Libraries used
+    adiak::cmdline();       // Command line used to launch the job
+    adiak::clustername();   // Name of the cluster
+    adiak::value("algorithm", "column"); // The name of the algorithm you are using (e.g., "merge", "bitonic")
+    adiak::value("programming_model", "mpi"); // e.g. "mpi"
+    adiak::value("data_type", "double"); // The datatype of input elements (e.g., double, int, float)
+    adiak::value("size_of_data_type", sizeof(double)); // sizeof(datatype) of input elements in bytes (e.g., 1, 2, 4)
+    adiak::value("input_size", sizeOfMatrix); // The number of elements in input dataset (1000)
+    adiak::value("input_type", "ReverseSorted"); // For sorting, this would be choices: ("Sorted", "ReverseSorted", "Random", "1_perc_perturbed")
+    adiak::value("num_procs", numtasks); // The number of processors (MPI ranks)
+    adiak::value("scalability", "weak"); // The scalability of your algorithm. choices: ("strong", "weak")
+    adiak::value("group_num", 1); // The number of your group (integer, e.g., 1, 10)
+    adiak::value("implementation_source", "handwritten"); // Where you got the source code of your algorithm. choices: ("online", "ai", "handwritten").
+    
     mgr.stop();
     mgr.flush();
     MPI_Finalize();
