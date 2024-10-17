@@ -433,3 +433,170 @@ In this section, we will discuss the ways we implemented our various sorting alg
 
 ### Merge Sort - Ariela
 My merge sort implementation was similar to my pseudocode, but after running analysis on the algorithm, I realized that I wasn't using the processors as efficiently as I could have. To fix this, I distributed the work evenly over all of the nodes by having them each generate their own data and sort it, then used the original parent-child hierarchy to determine which nodes should be executing the merge. Essentially, every node starts with an array of length totalArraySize/numNodes, sorts that, and then sends the sorted array to a specific task that will be responsible for merging the arrays together. Thus, in every step there are half the amount of processes working as there were in the previous step, which is the maximum amount of processes that can be working at one time for merge sort. 
+
+### Radix Sort - Alex
+This implmentation of radix sort only works for integers. It first generates arrays in each process. Each process has one segement of the array. After that it performs a local counting sort on the least significant bit of each integer. It also gets the local number of 0 bits, which come before the 1 bits. After sorting locally, the local number of 0's and 1's is distributed accordingly such that each processor has the total number of 0 bits, as well as the amount of 0 and 1 bits present in previous processors. This allows each processor to get the location of the sorted element. This has to be a stable sort, since otherwise the order would be messed up. Finally each element is moved to it's new position in reation to the total array. Intially in the psuedocode the implmentation used 1 sided communication using MPI_Put, however even though this would improve performance, it kept writing values to incorrect spots in memory. The actual implmenation uses 2 sided communication. The correctness checking first checks each array, and then checks the last element of the previous array with the first element of the next one.
+
+### Bitonic Sort - Maximiliano 
+My implementation of the bitonic sort algorithm closely followed the pseudocode, but I made several optimizations to ensure efficient use of the available processors. Each processor begins by generating its own segment of the array, with the size of each segment determined by the total array size divided by the number of processors. This approach allows each node to perform a local bitonic sort on its chunk of the array independently.
+The bitonic sort operates in multiple stages. In each stage, the processors first determine the sorting direction based on their rank and the current step size. This hierarchical structure allows for efficient merging of the sorted segments, where pairs of processors collaborate to perform the bitonic merge operation. By dynamically adjusting the step size and merging the results, I ensured that the number of active processors reduces by half in each subsequent step, maximizing parallelism during the sorting process.
+
+### Column Sort - Patralika Ghosh
+My implementation of the column sort closely follows the structure of my pseudocode and is largely based on Leighton's Column Sort algorithm. The algorithm generates the array according to the input type, and each process is assigned a portion of indexes based on the input size and the number of processes. Each process then sorts its assigned column and returns the sorted result. Next, I transpose the matrix with the sorted columns and reshape it into submatrices of size (r/c) X r, where r is the number of rows and c is the number of columns.
+I repeat the process of column sorting, transposing, and reshaping two more times. Afterward, I perform a shift in the matrix by adding an extra column, where one half is filled with -inf values and the other half with +inf values. I sort the columns again, then remove the -inf and +inf values, resulting in a fully column-sorted matrix.
+
+### Sample Sort - Joseph Nuccitelli
+First each process in my code generates their local splitters. They do this by sorting their local data and sampling splitters. Then each process sends their local splitters to the main process. The main process then sorts all of the local samples and creates global splitters. These are then broadcasted out to everyone. Then each process puts each element into the array into a bucket. The last part each process is given a bucket. They copy their given bucket and then send other processes buckets to each process. After that each process sorts their new bucket and we have a sorted array.
+
+
+### 3a. Caliper instrumentation
+Please use the caliper build `/scratch/group/csce435-f24/Caliper/caliper/share/cmake/caliper` 
+(same as lab2 build.sh) to collect caliper files for each experiment you run.
+
+Your Caliper annotations should result in the following calltree
+(use `Thicket.tree()` to see the calltree):
+```
+main
+|_ data_init_X      # X = runtime OR io
+|_ comm
+|    |_ comm_small
+|    |_ comm_large
+|_ comp
+|    |_ comp_small
+|    |_ comp_large
+|_ correctness_check
+```
+
+Required region annotations:
+- `main` - top-level main function.
+    - `data_init_X` - the function where input data is generated or read in from file. Use *data_init_runtime* if you are generating the data during the program, and *data_init_io* if you are reading the data from a file.
+    - `correctness_check` - function for checking the correctness of the algorithm output (e.g., checking if the resulting data is sorted).
+    - `comm` - All communication-related functions in your algorithm should be nested under the `comm` region.
+      - Inside the `comm` region, you should create regions to indicate how much data you are communicating (i.e., `comm_small` if you are sending or broadcasting a few values, `comm_large` if you are sending all of your local values).
+      - Notice that auxillary functions like MPI_init are not under here.
+    - `comp` - All computation functions within your algorithm should be nested under the `comp` region.
+      - Inside the `comp` region, you should create regions to indicate how much data you are computing on (i.e., `comp_small` if you are sorting a few values like the splitters, `comp_large` if you are sorting values in the array).
+      - Notice that auxillary functions like data_init are not under here.
+    - `MPI_X` - You will also see MPI regions in the calltree if using the appropriate MPI profiling configuration (see **Builds/**). Examples shown below.
+
+All functions will be called from `main` and most will be grouped under either `comm` or `comp` regions, representing communication and computation, respectively. You should be timing as many significant functions in your code as possible. **Do not** time print statements or other insignificant operations that may skew the performance measurements.
+
+### **Nesting Code Regions Example** - all computation code regions should be nested in the "comp" parent code region as following:
+```
+CALI_MARK_BEGIN("comp");
+CALI_MARK_BEGIN("comp_small");
+sort_pivots(pivot_arr);
+CALI_MARK_END("comp_small");
+CALI_MARK_END("comp");
+
+# Other non-computation code
+...
+
+CALI_MARK_BEGIN("comp");
+CALI_MARK_BEGIN("comp_large");
+sort_values(arr);
+CALI_MARK_END("comp_large");
+CALI_MARK_END("comp");
+```
+
+### **Calltree Example**:
+```
+# MPI Mergesort
+4.695 main
+├─ 0.001 MPI_Comm_dup
+├─ 0.000 MPI_Finalize
+├─ 0.000 MPI_Finalized
+├─ 0.000 MPI_Init
+├─ 0.000 MPI_Initialized
+├─ 2.599 comm
+│  ├─ 2.572 MPI_Barrier
+│  └─ 0.027 comm_large
+│     ├─ 0.011 MPI_Gather
+│     └─ 0.016 MPI_Scatter
+├─ 0.910 comp
+│  └─ 0.909 comp_large
+├─ 0.201 data_init_runtime
+└─ 0.440 correctness_check
+```
+
+### 3b. Collect Metadata
+
+Have the following code in your programs to collect metadata:
+```
+adiak::init(NULL);
+adiak::launchdate();    // launch date of the job
+adiak::libraries();     // Libraries used
+adiak::cmdline();       // Command line used to launch the job
+adiak::clustername();   // Name of the cluster
+adiak::value("algorithm", algorithm); // The name of the algorithm you are using (e.g., "merge", "bitonic")
+adiak::value("programming_model", programming_model); // e.g. "mpi"
+adiak::value("data_type", data_type); // The datatype of input elements (e.g., double, int, float)
+adiak::value("size_of_data_type", size_of_data_type); // sizeof(datatype) of input elements in bytes (e.g., 1, 2, 4)
+adiak::value("input_size", input_size); // The number of elements in input dataset (1000)
+adiak::value("input_type", input_type); // For sorting, this would be choices: ("Sorted", "ReverseSorted", "Random", "1_perc_perturbed")
+adiak::value("num_procs", num_procs); // The number of processors (MPI ranks)
+adiak::value("scalability", scalability); // The scalability of your algorithm. choices: ("strong", "weak")
+adiak::value("group_num", group_number); // The number of your group (integer, e.g., 1, 10)
+adiak::value("implementation_source", implementation_source); // Where you got the source code of your algorithm. choices: ("online", "ai", "handwritten").
+```
+
+They will show up in the `Thicket.metadata` if the caliper file is read into Thicket.
+
+### **See the `Builds/` directory to find the correct Caliper configurations to get the performance metrics.** They will show up in the `Thicket.dataframe` when the Caliper file is read into Thicket.
+## 4. Performance evaluation
+
+Include detailed analysis of computation performance, communication performance. 
+Include figures and explanation of your analysis.
+
+### 4a. Vary the following parameters
+For input_size's:
+- 2^16, 2^18, 2^20, 2^22, 2^24, 2^26, 2^28
+
+For input_type's:
+- Sorted, Random, Reverse sorted, 1%perturbed
+
+MPI: num_procs:
+- 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024
+
+This should result in 4x7x10=280 Caliper files for your MPI experiments.
+
+### 4b. Hints for performance analysis
+
+To automate running a set of experiments, parameterize your program.
+
+- input_type: "Sorted" could generate a sorted input to pass into your algorithms
+- algorithm: You can have a switch statement that calls the different algorithms and sets the Adiak variables accordingly
+- num_procs: How many MPI ranks you are using
+
+When your program works with these parameters, you can write a shell script 
+that will run a for loop over the parameters above (e.g., on 64 processors, 
+perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).  
+
+### 4c. You should measure the following performance metrics
+- `Time`
+    - Min time/rank
+    - Max time/rank
+    - Avg time/rank
+    - Total time
+    - Variance time/rank
+
+
+## 5. Presentation
+Plots for the presentation should be as follows:
+- For each implementation:
+    - For each of comp_large, comm, and main:
+        - Strong scaling plots for each input_size with lines for input_type (7 plots - 4 lines each)
+        - Strong scaling speedup plot for each input_type (4 plots)
+        - Weak scaling plots for each input_type (4 plots)
+
+Analyze these plots and choose a subset to present and explain in your presentation.
+
+## 6. Final Report
+Submit a zip named `TeamX.zip` where `X` is your team number. The zip should contain the following files:
+- Algorithms: Directory of source code of your algorithms.
+- Data: All `.cali` files used to generate the plots seperated by algorithm/implementation.
+- Jupyter notebook: The Jupyter notebook(s) used to generate the plots for the report.
+- Report.md
+
+
+

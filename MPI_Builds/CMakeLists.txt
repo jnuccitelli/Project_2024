@@ -7,6 +7,8 @@ find_package(adiak REQUIRED)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_executable(mergesort merge_sort.cpp helpers.cpp)
+add_executable(samplesort sample_sort.cpp helpers.cpp)
+
 
 message(STATUS "MPI includes : ${MPI_INCLUDE_PATH}")
 message(STATUS "Caliper includes : ${caliper_INCLUDE_DIR}")
@@ -18,3 +20,9 @@ include_directories(${adiak_INCLUDE_DIRS})
 target_link_libraries(mergesort PRIVATE MPI::MPI_CXX)
 target_link_libraries(mergesort PRIVATE caliper)
 target_link_libraries(mergesort PUBLIC adiak::adiak)
+
+
+target_link_libraries(samplesort PRIVATE MPI::MPI_CXX)
+target_link_libraries(samplesort PRIVATE caliper)
+target_link_libraries(samplesort PUBLIC adiak::adiak)
+

@@ -20,6 +20,16 @@
 #define REVERSE_SORTED_INPUT 2
 #define ONE_PERC_PERMUTED 3
 
+const char* main_cali = "main";
+const char* data_init_runtime = "data_init_runtime";
+const char* correctness_check = "correctness_check";
+const char* comm = "comm";
+const char* comm_small = "comm_small";
+const char* comm_large = "comm_large";
+const char* comp = "comp";
+const char* comp_small = "comp_small";
+const char* comp_large = "comp_large";
+
 //HELPER FUNCTIONS FOR RADIX SORT
 int* generateArray(int size, int inputType, int processorNumber, int totalProcesses) {
     int* arr = new int[size];
@@ -101,6 +111,7 @@ int main (int argc, char *argv[]) {
 
     int sizeOfArray; //this is an input to the code
     int inputType;
+    std::string inputString;
 
     if (argc == 3) {
         sizeOfArray = atoi(argv[1]);
@@ -124,17 +135,35 @@ int main (int argc, char *argv[]) {
     int numPrevZeroesBuf;
     int numPrevOnesBuf;
     int position;
-    int destProc;
-    int destPos;
+    int destPos = 0;
+    int maxPrevArray = 0;
+    bool arraySorted = true;
 
     MPI_Status status;
+
+    if(inputType == RANDOM_INPUT)
+        inputString = "random";
+    if(inputType == SORTED_INPUT)
+        inputString = "sorted";
+    if(inputType == REVERSE_SORTED_INPUT)
+        inputString = "reversed";
+    if(inputType == ONE_PERC_PERMUTED)
+        inputString = "permuted";
+
+    cali::ConfigManager mgr;
+    mgr.start();
+
+    CALI_MARK_BEGIN(main_cali);
 
     MPI_Init(&argc,&argv);
     MPI_Comm_rank(MPI_COMM_WORLD,&taskid);
     MPI_Comm_size(MPI_COMM_WORLD,&numTasks);
 
+    CALI_MARK_BEGIN(data_init_runtime);
     int* arr = generateArray(sizeOfArray, inputType, taskid, numTasks);
+    CALI_MARK_END(data_init_runtime);
 
+    CALI_MARK_END(main_cali);
     //Print starting arrays
     int rank = 0;
     while (rank < numTasks) {
@@ -149,9 +178,11 @@ int main (int argc, char *argv[]) {
         MPI_Barrier(MPI_COMM_WORLD);
     }
 
-    for (int i = 0; i < 1; ++i) {
+    CALI_MARK_BEGIN(main_cali);
+    for (int i = 0; i < 32; ++i) { //32 bits in an int
 
-
+        CALI_MARK_BEGIN(comp);
+        CALI_MARK_BEGIN(comp_large);
         //performing a local counting sort
         int countingArray[2] = {0, 0};
 
@@ -170,19 +201,22 @@ int main (int argc, char *argv[]) {
 
         delete[] arr;
         arr = newArr;
-
-        printf("process: %d copied elements\n", taskid);
+        CALI_MARK_END(comp_large);
+        CALI_MARK_END(comp);
+        // printf("process: %d copied elements\n", taskid);
         
 
+        CALI_MARK_BEGIN(comm);
+        CALI_MARK_BEGIN(comm_small);
         //Get total number of 0s to all processes
         numLocalOnes = sizeOfArray - numLocalZeroes;
-        printf("process: %d, numZeroes: %d, numOnes: %d\n", taskid, numLocalZeroes, numLocalOnes);
+        // printf("process: %d, numZeroes: %d, numOnes: %d\n", taskid, numLocalZeroes, numLocalOnes);
 
         
         for (int j = 0; j < numTasks; j++) {
             MPI_Reduce(&numLocalZeroes, &numTotalZeores, 1, MPI_INT, MPI_SUM, j, MPI_COMM_WORLD);
         }
-        printf("process: %d, totalNumZeroes: %d\n", taskid, numTotalZeores);
+        // printf("process: %d, totalNumZeroes: %d\n", taskid, numTotalZeores);
 
         //Get the previous numbers of 0s and 1s to determine placement
         numPrevZeroes = 0;
@@ -203,14 +237,14 @@ int main (int argc, char *argv[]) {
                 }
             }
         }
-        printf("process: %d, prevNumZeroes: %d, prevNumOnes: %d\n", taskid, numPrevZeroes, numPrevOnes);
-
+        // printf("process: %d, prevNumZeroes: %d, prevNumOnes: %d\n", taskid, numPrevZeroes, numPrevOnes);
+        CALI_MARK_END(comm_small);
+        CALI_MARK_BEGIN(comm_large);
         //Move elements to their sorted arrays
-        int* newSortedArr = new int[sizeOfArray + 1];
+        int* newSortedArr = new int[sizeOfArray];
         int destProcArray[sizeOfArray];
         int destPosArray[sizeOfArray];
-        MPI_Win win;
-        MPI_Win_create(&newSortedArr, ((MPI_Aint)sizeOfArray + 1) * sizeof(int), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &win);
+        bool isHere[sizeOfArray] = {0};
 
         for (int j = 0; j < sizeOfArray; ++j) {
             if ((int) ((arr[j] >> i) & 1) == 0) {
@@ -222,33 +256,64 @@ int main (int argc, char *argv[]) {
             }
             destProcArray[j] = position / sizeOfArray;
             destPosArray[j] = position % sizeOfArray;
+
+            if (destProcArray[j] == taskid) {
+                newSortedArr[destPosArray[j]] = arr[j];
+                isHere[destPosArray[j]] = 1;
+            }
         }
 
-            
-        MPI_Barrier(MPI_COMM_WORLD);
-        for (int l = 0; l < 1; ++l) {
-            MPI_Win_fence(0, win);
-            MPI_Barrier(MPI_COMM_WORLD);
-            printf("Process %d, l %d\n", taskid, l);
-            if (l == taskid) {
-                printf("Starting process %d copy\n", l);
-                for (int j = 0; j < sizeOfArray; ++j) {
-                    if (destProcArray[j] != taskid) {
-                        printf("process: %d, element: %d, position: %d, destProc: %d, destPos: %d\n", taskid, arr[j], destProcArray[j] * sizeOfArray + destPosArray[j], destProcArray[j], destPosArray[j]);
-                        MPI_Put(&(arr[j]), 1, MPI_INT, destProcArray[j], (MPI_Aint)destPosArray[j], 1, MPI_INT, win);
+        for (int j = 0; j < sizeOfArray; ++j) {
+            for (int k = 0; k < numTasks; ++k) {
+                for (int l = 0; l < sizeOfArray; ++l) {
+                    if (k == destProcArray[l] && k != taskid && j == destPosArray[l]) {
+                        MPI_Send(&destPosArray[l], 1, MPI_INT, k, 1, MPI_COMM_WORLD);
+                        MPI_Send(&arr[l], 1, MPI_INT, k, 2, MPI_COMM_WORLD);
+
                     }
                 }
-                fflush (stdout);
+                if (k == taskid && isHere[j] == 0) {
+                    MPI_Recv(&destPos, 1, MPI_INT, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, &status);
+                    MPI_Recv(&newSortedArr[destPos], 1, MPI_INT, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, & status);
+                }
             }
-            MPI_Barrier(MPI_COMM_WORLD);
-            MPI_Win_fence(0, win);
         }
-        MPI_Barrier(MPI_COMM_WORLD);
-        MPI_Win_free(&win);
+
+
+
         delete[] arr;
         arr = newSortedArr;
+        CALI_MARK_END(comm_large);
+        CALI_MARK_END(comm);
         
     }
+    //Make sure all arrays finish sorting before printing and checking
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    CALI_MARK_BEGIN(correctness_check);
+    //Check all arrays
+    if (!verifySorted(arr, sizeOfArray)) {
+        printf("Array not sorted, processor %d\n", taskid);
+        arraySorted = false;
+    }
+    for (int i = 0; i < numTasks; ++i) {
+        if (i != 0 && i == taskid) {
+            MPI_Recv(&maxPrevArray, 1, MPI_INT, taskid - 1, 1, MPI_COMM_WORLD, &status);
+            if (maxPrevArray > arr[sizeOfArray - 1]) {
+                printf("Array not sorted, between processor %d and %d\n", taskid -1, taskid);
+                arraySorted = false;
+            }
+        }
+        if (i != numTasks - 1 && i == taskid) {
+            MPI_Send(&arr[sizeOfArray - 1], 1, MPI_INT, taskid + 1, 1, MPI_COMM_WORLD);
+        }
+        
+    }
+    if (arraySorted) {
+        printf("Array Sorted!\n");
+    }
+    CALI_MARK_END(correctness_check);
+    CALI_MARK_END(main_cali);
 
 
     //Print finished arrays
@@ -264,6 +329,25 @@ int main (int argc, char *argv[]) {
         rank++;
         MPI_Barrier(MPI_COMM_WORLD);
     }
+
+    adiak::init(NULL);
+    adiak::launchdate();    // launch date of the job
+    adiak::libraries();     // Libraries used
+    adiak::cmdline();       // Command line used to launch the job
+    adiak::clustername();   // Name of the cluster
+    adiak::value("algorithm", "radix"); // The name of the algorithm you are using (e.g., "merge", "bitonic")
+    adiak::value("programming_model", "mpi"); // e.g. "mpi"
+    adiak::value("data_type", "int"); // The datatype of input elements (e.g., double, int, float)
+    adiak::value("size_of_data_type", sizeof(int)); // sizeof(datatype) of input elements in bytes (e.g., 1, 2, 4)
+    adiak::value("input_size", sizeOfArray); // The number of elements in input dataset (1000)
+    adiak::value("input_type", inputString); // For sorting, this would be choices: ("Sorted", "ReverseSorted", "Random", "1_perc_perturbed")
+    adiak::value("num_procs", numTasks); // The number of processors (MPI ranks)
+    adiak::value("scalability", "strong"); // The scalability of your algorithm. choices: ("strong", "weak")
+    adiak::value("group_num", 1); // The number of your group (integer, e.g., 1, 10)
+    adiak::value("implementation_source", "handwritten"); // Where you got the source code of your algorithm. choices: ("online", "ai", "handwritten").
+
+    mgr.stop();
+    mgr.flush();
 
     MPI_Finalize();
 }
