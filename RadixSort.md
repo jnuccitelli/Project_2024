@@ -1,6 +1,6 @@
 # Radix Sort Analysis
 
-##Overall Performance
+## Overall Performance
 
 Overall the performance of this algorthim is bad. The algorthim scales as expected but it simply takes way too long to run at higher array sizes.
 Any further runs at higher sizes will require unavailable resources.
@@ -15,6 +15,10 @@ In the future this program will be further optimized.
 ![main_1048576](https://github.com/user-attachments/assets/9a8bb6bc-2eb8-4a25-95f6-2f8d31c99531)
 ![main_4194304](https://github.com/user-attachments/assets/04f881fd-673c-4365-8d45-d4c280b119bb)
 
+## Speedup and Efficiency
+
+This graphs speedup and efficiency trends are as expected. Since radix sort is a bitwise sort, there is no difference between any of the different element types, they all take exactly the same amount of time. Speedup increases linearlly with the number of processors, which means that this program is parallelized correctly.
+Efficiency seems to roughly decrease with the number of processors, which is expected as a higher number of processors will result in lower efficiency.
 ![comm_permuted_strong_speedup](https://github.com/user-attachments/assets/6983ab83-ce3a-424e-b0cc-615f3823b69f)
 ![comm_permuted_weak_efficiency](https://github.com/user-attachments/assets/5e482ff4-dfc3-4af6-af2c-55be7837dad4)
 ![comm_random_strong_speedup](https://github.com/user-attachments/assets/211299ed-7cff-41b9-a723-9e1f5b0476fc)
@@ -23,6 +27,9 @@ In the future this program will be further optimized.
 ![comm_reversed_weak_efficiency](https://github.com/user-attachments/assets/b90a778b-6bf7-4af1-a81c-a074f4307a47)
 ![comm_sorted_strong_speedup](https://github.com/user-attachments/assets/24c01562-4d76-4bc6-97b5-41f059724674)
 ![comm_sorted_weak_efficiency](https://github.com/user-attachments/assets/d5ac9de1-dca1-4b35-896d-d4ae2d766d29)
+
+There is little difference between speedups in the comp and coom regions, as increasing the number of processors will cause an increase in speedup, as these array sizes are all big enough to benifit from that speedup.
+
 ![comp_large_permuted_strong_speedup](https://github.com/user-attachments/assets/8bdf0552-6c10-45b7-b35f-e193d8a76ee6)
 ![comp_large_permuted_weak_efficiency](https://github.com/user-attachments/assets/08ab8c3f-5067-4c17-b99d-031f8dca1867)
 ![comp_large_random_strong_speedup](https://github.com/user-attachments/assets/840e460b-c9f6-4bd2-972a-6558244b00d7)
@@ -31,6 +38,9 @@ In the future this program will be further optimized.
 ![comp_large_reversed_weak_efficiency](https://github.com/user-attachments/assets/d85bb5fb-eb5d-481d-b10a-92dc16f66e3f)
 ![comp_large_sorted_strong_speedup](https://github.com/user-attachments/assets/059fe96e-81b9-47cb-9b37-73b9f418a149)
 ![comp_large_sorted_weak_efficiency](https://github.com/user-attachments/assets/ad5f251d-2b28-4f69-9411-117b57be7782)
+
+There is minialy difference between the main graphs and the comm graphs, espically because the comm chunck takes up over 99% of the total runtime.
+
 ![main_permuted_strong_speedup](https://github.com/user-attachments/assets/76a3be21-525a-492b-a2e0-57354bcfcbf1)
 ![main_permuted_weak_efficiency](https://github.com/user-attachments/assets/c143b532-552f-4166-a532-0b5b6c3173b5)
 ![main_random_strong_speedup](https://github.com/user-attachments/assets/a1b270ae-b095-4153-ac21-dfb05821d2b2)
