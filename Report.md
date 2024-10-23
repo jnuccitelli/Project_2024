@@ -582,7 +582,6 @@ For example, when doing 'df[col].method(value, inplace=True)', try using 'df.met
 │  ├─ 0.001 MPI_Recv
 │  └─ 0.000 MPI_Send
 └─ 0.552 comp
-   └─ 0.000 MPI_Init
 
 Legend (Metric: Avg time/rank Min: 0.00 Max: 0.55 indices: {'num_procs': 2, 'input_size': 65536, 'input_type': '1_perc_perturbed', 'algorithm': 'sample'})
 █ 0.50 - 0.55
