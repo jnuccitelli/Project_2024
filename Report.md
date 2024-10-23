@@ -543,6 +543,64 @@ adiak::value("implementation_source", implementation_source); // Where you got t
 They will show up in the `Thicket.metadata` if the caliper file is read into Thicket.
 
 ### **See the `Builds/` directory to find the correct Caliper configurations to get the performance metrics.** They will show up in the `Thicket.dataframe` when the Caliper file is read into Thicket.
+
+
+###Sample Sort Call Tree and metadata
+```
+(1/2) Reading Files: 100%|██████████| 252/252 [00:06<00:00, 36.29it/s]
+(2/2) Creating Thicket: 100%|██████████| 251/251 [00:00<00:00, 324.60it/s]
+c:\Users\jnucc\AppData\Local\Programs\Python\Python312\Lib\site-packages\thicket\ensemble.py:409: FutureWarning: A value is trying to be set on a copy of a DataFrame or Series through chained assignment using an inplace method.
+The behavior will change in pandas 3.0. This inplace method will never work because the intermediate object on which we are setting values always behaves as a copy.
+
+For example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' or df[col] = df[col].method(value) instead, to perform the operation inplace on the original object.
+
+
+  df[col].replace({numerical_fill_value: None}, inplace=True)
+  _____ _     _      _        _   
+ |_   _| |__ (_) ___| | _____| |_ 
+   | | | '_ \| |/ __| |/ / _ \ __|
+   | | | | | | | (__|   <  __/ |_ 
+   |_| |_| |_|_|\___|_|\_\___|\__|  v2024.1.0
+
+0.008 MPI_Comm_dup
+0.000 MPI_Finalize
+0.000 MPI_Finalized
+0.000 MPI_Initialized
+0.554 main
+├─ 0.002 comm
+│  ├─ nan MPI_Barrier
+│  ├─ 0.001 MPI_Recv
+│  └─ 0.000 MPI_Send
+└─ 0.552 comp
+   └─ 0.000 MPI_Init
+
+Legend (Metric: Avg time/rank Min: 0.00 Max: 0.55 indices: {'num_procs': 2, 'input_size': 65536, 'input_type': '1_perc_perturbed', 'algorithm': 'sample'})
+█ 0.50 - 0.55
+█ 0.39 - 0.50
+█ 0.28 - 0.39
+█ 0.17 - 0.28
+█ 0.06 - 0.17
+█ 0.00 - 0.06
+
+name User code    ◀  Only in left graph    ▶  Only in right graph
+
+ adiak::init(NULL);
+   adiak::launchdate();    // launch date of the job
+   adiak::libraries();     // Libraries used
+   adiak::cmdline();       // Command line used to launch the job
+   adiak::clustername();   // Name of the cluster
+   adiak::value("algorithm", "sample"); // The name of the algorithm you are using (e.g., "merge", "bitonic")
+   adiak::value("programming_model", "mpi"); // e.g. "mpi"
+   adiak::value("data_type", "double"); // The datatype of input elements (e.g., double, int, float)
+   adiak::value("size_of_data_type", sizeof(double)); // sizeof(datatype) of input elements in bytes (e.g., 1, 2, 4)
+   adiak::value("input_size", sizeOfArray); // The number of elements in input dataset (1000)
+   adiak::value("input_type",  inputString); // For sorting, this would be choices: ("Sorted", "ReverseSorted", "Random", "1_perc_perturbed")
+   adiak::value("num_procs", totalProcNum); // The number of processors (MPI ranks)
+   adiak::value("scalability", "strong"); // The scalability of your algorithm. choices: ("strong", "weak")
+   adiak::value("group_num", 1); // The number of your group (integer, e.g., 1, 10)
+   adiak::value("implementation_source", "handwritten"); // Where you got the source code of your algorithm. choices: ("online", "ai", "handwritten").
+
+```
 ## 4. Performance evaluation
 
 Include detailed analysis of computation performance, communication performance. 
