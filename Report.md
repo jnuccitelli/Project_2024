@@ -442,6 +442,9 @@ This implmentation of radix sort only works for integers. It first generates arr
 
 Call Tree:
 ![image](https://github.com/user-attachments/assets/271a69e5-be2c-47c4-9b50-17839adb1e19)
+Meta Data:
+![image](https://github.com/user-attachments/assets/eaaafc7e-c83b-456a-8bac-c42159de99d5)
+
 
 
 ### Bitonic Sort - Maximiliano 
