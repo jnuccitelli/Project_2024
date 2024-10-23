@@ -1,25 +1,10 @@
-# Merge Sort Analysis: Ariela Mitrani
-This document will focus on the analysis of the parallelized merge sort algorithm that was implemented for this project using a variety of different visualizations generated from Caliper files. The report file specified the following graphs to analyze for the presentation, so the graphs I will be analyzing in this document are:
+# Column Sort Analysis: Patralika Ghosh
+My implementation of the column sort closely follows and is largely based on Leighton's Column Sort algorithm. The algorithm generates the array according to the input type, and each process is assigned a portion of indexes based on the input size and the number of processes. Each process then sorts its assigned column and returns the sorted result. This part of the code is parallelized however due to high communication overhead I was not able to parallelize the entire algorithm properly. Next, I transpose the matrix with the sorted columns and reshape it into submatrices of size (r/c) x r, where r is the number of rows and c is the number of columns. I repeat the process of column sorting and re-tranpose the matrix back to its original form. Afterward, I perform a shift in the matrix, where one half of the first column is filled with -inf values and the other half of the last column is filled with +inf values. I sort the columns again, then remove the -inf and +inf values, resulting in a fully column-sorted matrix.
 
-For each of comp_large, comm, and main:
-- Strong scaling plots for each input_size with lines for input_type (7 plots - 4 lines each)
-- Strong scaling speedup plot for each input_type (4 plots)
-- Weak scaling plots for each input_type (4 plots)
-
-Only a subset of these will be in our final presentation, but the below will include a detailed analysis on each of these groups. These were tested with array sizes 2^16, 2^18, 2^20, 2^22, 2^24, 2^26, 2^28, process numbers 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, and input types sorted, random, reverse sorted, and 1% perturbed.
-
-Aside from the graphs below, we also recorded variance in average time per rank. It is worth noting that this variance increased with problem size for both comm and comp, because due to my implementation of merge sort, each process works at most twice (once to sort its part of the array and once to merge two sub-arrays together), so the difference in the times it takes to do these things between tasks will be greater when the difference in the array sizes each task is merging increase.
-
-## Main: Total Time for Program Execution
-For the measurements for this section, we used Max time/rank from the Cali file, which would be the time taken by the task that does the final merge and the correctness check.
+Since, my implementation lacks sufficient parallelization, I am missing a couple of Caliper files because of network errors that I faced while trying to run my program for 1024 and 512 number of processors. My program is timing out for the largest array size for processors 32 and onwards and when it is run on number of processes for 512 and 1024. 
 
 ### Strong Scaling Plots
-This section has 7 graphs that span the seven different array sizes specified above, with each one having a line for each input type. the most important observations from these graphs are the following:
-
-- The smallest array size, 65536, shows that the total program time actually increases as more processes are added. This is because the added communication overhead for additional processes heavily outweighs any benefit to computation time that those processes add on such a small problem size.
-- As the array sizes increase, the point where total execution time gets worse instead of better with more processes shifts to the right (higher number of processes), and the process numbers before that point have a much steeper downward trend. This is because as the problem size increases, the value of adding processes also increases, and this break-even point is larger for larger problem sizes.
-- The difference between the different input types is minimal, but the slowest is consistently random. This makes sense, as the program is not able to optimize the likely next choice as efficiently. Permuted was typically the next slowest, followed by sorted and finally reversed. The important thing to note here is that data that was random was consistently slower, as the other three times were much closer to each other than to the random time.
-- As the problem size got large enough to make all the added processes helpful, the graph formed a smooth exponential decrease. We will discuss the slope of this in the following section. Another thing of note here is that the minimum time for the largest problem size (268435456) never dips below 5 seconds, suggesting that this is the amount of time that cannot be parallelized effectively.
+- Larger input sizes generally show better scalability, with higher speedups achieved as number of processes increase. This suggests that the algorithm can better utilize parallel resources when there is more data to process, which reduces the relative impact of overheads like communication and synchronization.
 
 ![main_65536](/ColumnSortGraphs/main_65536.png)
 ![main_262144](/ColumnSortGraphs/main_262144.png)
@@ -30,14 +15,9 @@ This section has 7 graphs that span the seven different array sizes specified ab
 ![main_268435456](/ColumnSortGraphs/main_268435456.png)
 
 ### Strong Speedup/Weak Efficiency Plots
-These graphs show both the strong speedup and weak efficiency relative to time on two processes for all of the given input types. Each graph has a line for every input size. The observations we can make are as follows:
 
-- There isn't a significant difference between these graphs for permuted, random, reversed, and sorted data, because they all follow the same trends even if the times differ slightly.
-- The strong speedup for these graphs seems to be much closer to a linear speedup at the beginning, before leveling out to a constant or even decreasing speedup with processes added. Once again, this is because the problem size is not large enough to have a significant speedup after a certain number of processes, and the amount it speeds up starts to decrease after that point.
-- Following the same reasoning, the larger problem sizes are always higher on the graph (e.g. the lines are in order of problem size). This is because for a larger problem size, the amount of speedup that is obtained by using more processors tends to be better, and that speedup doesn't hit a limit until a higher processor number (and the limit is higher).
-- Looking at the weak efficiency graphs, we once again see the trend that larger problem sizes have a higher efficiency overall. However, all of the weak scaling for these processes decreases quickly until it levels out around the point where it cannot decrease any more. This relates to the slope we saw in the strong scaling plots; Even though the problem execution time decreased on a curve as the process number increased, this was not a proportional relationship (where doubling the processes halves the execution time), and thus the weak scaling efficiency drops away from 1 quickly.
-![main_permuted_strong_speedup](/ColumnSortGraphs/main_permuted_strong_speedup.png)
-![main_permuted_weak_efficiency](/ColumnSortGraphs/main_permuted_weak_efficiency.png)
+![main_permuted_strong_speedup](/ColumnSortGraphs/main_Perturbed_strong_speedup.png)
+![main_permuted_weak_efficiency](/ColumnSortGraphs/main_Perturbed_weak_efficiency.png)
 ![main_random_strong_speedup](/ColumnSortGraphs/main_random_strong_speedup.png)
 ![main_random_weak_efficiency](/ColumnSortGraphs/main_random_weak_efficiency.png)
 ![main_reversed_strong_speedup](/ColumnSortGraphs/main_reversed_strong_speedup.png)
