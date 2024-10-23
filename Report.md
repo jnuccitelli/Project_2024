@@ -454,6 +454,7 @@ I repeat the process of column sorting, transposing, and reshaping two more time
 
 
 ![column_thicket_tree](/columnthicket.png)
+![column_metadata](/columnMetadata.png)
 
 ### Sample Sort - Joseph Nuccitelli
 First each process in my code generates their local splitters. They do this by sorting their local data and sampling splitters. Then each process sends their local splitters to the main process. The main process then sorts all of the local samples and creates global splitters. These are then broadcasted out to everyone. Then each process puts each element into the array into a bucket. The last part each process is given a bucket. They copy their given bucket and then send other processes buckets to each process. After that each process sorts their new bucket and we have a sorted array.

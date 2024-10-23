@@ -426,7 +426,7 @@ int main(int argc, char *argv[])
     adiak::clustername();   // Name of the cluster
     adiak::value("algorithm", "column"); // The name of the algorithm you are using (e.g., "merge", "bitonic")
     adiak::value("programming_model", "mpi"); // e.g. "mpi"
-    adiak::value("data_type", "double"); // The datatype of input elements (e.g., double, int, float)
+    adiak::value("data_type", "int"); // The datatype of input elements (e.g., double, int, float)
     adiak::value("size_of_data_type", sizeof(int)); // sizeof(datatype) of input elements in bytes (e.g., 1, 2, 4)
     adiak::value("input_size", (sizeOfMatrix*columnNum)); // The number of elements in input dataset (1000)
     adiak::value("input_type", input_type_str); // For sorting, this would be choices: ("Sorted", "ReverseSorted", "Random", "1_perc_perturbed")
