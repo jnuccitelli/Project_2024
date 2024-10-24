@@ -470,103 +470,6 @@ First each process in my code generates their local splitters. They do this by s
 
 ![image](https://github.com/user-attachments/assets/568b0958-94ce-4325-8a2c-3c12047e5180)
 
-
-
-### 3a. Caliper instrumentation
-Please use the caliper build `/scratch/group/csce435-f24/Caliper/caliper/share/cmake/caliper` 
-(same as lab2 build.sh) to collect caliper files for each experiment you run.
-
-Your Caliper annotations should result in the following calltree
-(use `Thicket.tree()` to see the calltree):
-```
-main
-|_ data_init_X      # X = runtime OR io
-|_ comm
-|    |_ comm_small
-|    |_ comm_large
-|_ comp
-|    |_ comp_small
-|    |_ comp_large
-|_ correctness_check
-```
-
-Required region annotations:
-- `main` - top-level main function.
-    - `data_init_X` - the function where input data is generated or read in from file. Use *data_init_runtime* if you are generating the data during the program, and *data_init_io* if you are reading the data from a file.
-    - `correctness_check` - function for checking the correctness of the algorithm output (e.g., checking if the resulting data is sorted).
-    - `comm` - All communication-related functions in your algorithm should be nested under the `comm` region.
-      - Inside the `comm` region, you should create regions to indicate how much data you are communicating (i.e., `comm_small` if you are sending or broadcasting a few values, `comm_large` if you are sending all of your local values).
-      - Notice that auxillary functions like MPI_init are not under here.
-    - `comp` - All computation functions within your algorithm should be nested under the `comp` region.
-      - Inside the `comp` region, you should create regions to indicate how much data you are computing on (i.e., `comp_small` if you are sorting a few values like the splitters, `comp_large` if you are sorting values in the array).
-      - Notice that auxillary functions like data_init are not under here.
-    - `MPI_X` - You will also see MPI regions in the calltree if using the appropriate MPI profiling configuration (see **Builds/**). Examples shown below.
-
-All functions will be called from `main` and most will be grouped under either `comm` or `comp` regions, representing communication and computation, respectively. You should be timing as many significant functions in your code as possible. **Do not** time print statements or other insignificant operations that may skew the performance measurements.
-
-### **Nesting Code Regions Example** - all computation code regions should be nested in the "comp" parent code region as following:
-```
-CALI_MARK_BEGIN("comp");
-CALI_MARK_BEGIN("comp_small");
-sort_pivots(pivot_arr);
-CALI_MARK_END("comp_small");
-CALI_MARK_END("comp");
-
-# Other non-computation code
-...
-
-CALI_MARK_BEGIN("comp");
-CALI_MARK_BEGIN("comp_large");
-sort_values(arr);
-CALI_MARK_END("comp_large");
-CALI_MARK_END("comp");
-```
-
-### **Calltree Example**:
-```
-# MPI Mergesort
-4.695 main
-├─ 0.001 MPI_Comm_dup
-├─ 0.000 MPI_Finalize
-├─ 0.000 MPI_Finalized
-├─ 0.000 MPI_Init
-├─ 0.000 MPI_Initialized
-├─ 2.599 comm
-│  ├─ 2.572 MPI_Barrier
-│  └─ 0.027 comm_large
-│     ├─ 0.011 MPI_Gather
-│     └─ 0.016 MPI_Scatter
-├─ 0.910 comp
-│  └─ 0.909 comp_large
-├─ 0.201 data_init_runtime
-└─ 0.440 correctness_check
-```
-
-### 3b. Collect Metadata
-
-Have the following code in your programs to collect metadata:
-```
-adiak::init(NULL);
-adiak::launchdate();    // launch date of the job
-adiak::libraries();     // Libraries used
-adiak::cmdline();       // Command line used to launch the job
-adiak::clustername();   // Name of the cluster
-adiak::value("algorithm", algorithm); // The name of the algorithm you are using (e.g., "merge", "bitonic")
-adiak::value("programming_model", programming_model); // e.g. "mpi"
-adiak::value("data_type", data_type); // The datatype of input elements (e.g., double, int, float)
-adiak::value("size_of_data_type", size_of_data_type); // sizeof(datatype) of input elements in bytes (e.g., 1, 2, 4)
-adiak::value("input_size", input_size); // The number of elements in input dataset (1000)
-adiak::value("input_type", input_type); // For sorting, this would be choices: ("Sorted", "ReverseSorted", "Random", "1_perc_perturbed")
-adiak::value("num_procs", num_procs); // The number of processors (MPI ranks)
-adiak::value("scalability", scalability); // The scalability of your algorithm. choices: ("strong", "weak")
-adiak::value("group_num", group_number); // The number of your group (integer, e.g., 1, 10)
-adiak::value("implementation_source", implementation_source); // Where you got the source code of your algorithm. choices: ("online", "ai", "handwritten").
-```
-
-They will show up in the `Thicket.metadata` if the caliper file is read into Thicket.
-
-### **See the `Builds/` directory to find the correct Caliper configurations to get the performance metrics.** They will show up in the `Thicket.dataframe` when the Caliper file is read into Thicket.
-
 ## 4. Performance evaluation
 
 ### Merge Sort Analysis: Ariela Mitrani
@@ -592,13 +495,13 @@ This section has 7 graphs that span the seven different array sizes specified ab
 - The difference between the different input types is minimal, but the slowest is consistently random. This makes sense, as the program is not able to optimize the likely next choice as efficiently. Permuted was typically the next slowest, followed by sorted and finally reversed. The important thing to note here is that data that was random was consistently slower, as the other three times were much closer to each other than to the random time.
 - As the problem size got large enough to make all the added processes helpful, the graph formed a smooth exponential decrease. We will discuss the slope of this in the following section. Another thing of note here is that the minimum time for the largest problem size (268435456) never dips below 5 seconds, suggesting that this is the amount of time that cannot be parallelized effectively.
 
-![main_65536](../Graphs/GraphsMergeSort/main_65536.png)
-![main_262144](../Graphs/GraphsMergeSort/main_262144.png)
-![main_1048576](../Graphs/GraphsMergeSort/main_1048576.png)
-![main_4194304](../Graphs/GraphsMergeSort/main_4194304.png)
-![main_16777216](../Graphs/GraphsMergeSort/main_16777216.png)
-![main_67108864](../Graphs/GraphsMergeSort/main_67108864.png)
-![main_268435456](../Graphs/GraphsMergeSort/main_268435456.png)
+![main_65536](/Graphs/GraphsMergeSort/main_65536.png)
+![main_262144](/Graphs/GraphsMergeSort/main_262144.png)
+![main_1048576](/Graphs/GraphsMergeSort/main_1048576.png)
+![main_4194304](/Graphs/GraphsMergeSort/main_4194304.png)
+![main_16777216](/Graphs/GraphsMergeSort/main_16777216.png)
+![main_67108864](/Graphs/GraphsMergeSort/main_67108864.png)
+![main_268435456](/Graphs/GraphsMergeSort/main_268435456.png)
 
 ##### Strong Speedup/Weak Efficiency Plots
 These graphs show both the strong speedup and weak efficiency relative to time on two processes for all of the given input types. Each graph has a line for every input size. The observations we can make are as follows:
@@ -607,14 +510,14 @@ These graphs show both the strong speedup and weak efficiency relative to time o
 - The strong speedup for these graphs seems to be much closer to a linear speedup at the beginning, before leveling out to a constant or even decreasing speedup with processes added. Once again, this is because the problem size is not large enough to have a significant speedup after a certain number of processes, and the amount it speeds up starts to decrease after that point.
 - Following the same reasoning, the larger problem sizes are always higher on the graph (e.g. the lines are in order of problem size). This is because for a larger problem size, the amount of speedup that is obtained by using more processors tends to be better, and that speedup doesn't hit a limit until a higher processor number (and the limit is higher).
 - Looking at the weak efficiency graphs, we once again see the trend that larger problem sizes have a higher efficiency overall. However, all of the weak scaling for these processes decreases quickly until it levels out around the point where it cannot decrease any more. This relates to the slope we saw in the strong scaling plots; Even though the problem execution time decreased on a curve as the process number increased, this was not a proportional relationship (where doubling the processes halves the execution time), and thus the weak scaling efficiency drops away from 1 quickly.
-![main_permuted_strong_speedup](../Graphs/GraphsMergeSort/main_permuted_strong_speedup.png)
-![main_permuted_weak_efficiency](../Graphs/GraphsMergeSort/main_permuted_weak_efficiency.png)
-![main_random_strong_speedup](../Graphs/GraphsMergeSort/main_random_strong_speedup.png)
-![main_random_weak_efficiency](../Graphs/GraphsMergeSort/main_random_weak_efficiency.png)
-![main_reversed_strong_speedup](../Graphs/GraphsMergeSort/main_reversed_strong_speedup.png)
-![main_reversed_weak_efficiency](../Graphs/GraphsMergeSort/main_reversed_weak_efficiency.png)
-![main_sorted_strong_speedup](../Graphs/GraphsMergeSort/main_sorted_strong_speedup.png)
-![main_sorted_weak_efficiency](../Graphs/GraphsMergeSort/main_sorted_weak_efficiency.png)
+![main_permuted_strong_speedup](/Graphs/GraphsMergeSort/main_permuted_strong_speedup.png)
+![main_permuted_weak_efficiency](/Graphs/GraphsMergeSort/main_permuted_weak_efficiency.png)
+![main_random_strong_speedup](/Graphs/GraphsMergeSort/main_random_strong_speedup.png)
+![main_random_weak_efficiency](/Graphs/GraphsMergeSort/main_random_weak_efficiency.png)
+![main_reversed_strong_speedup](/Graphs/GraphsMergeSort/main_reversed_strong_speedup.png)
+![main_reversed_weak_efficiency](/Graphs/GraphsMergeSort/main_reversed_weak_efficiency.png)
+![main_sorted_strong_speedup](/Graphs/GraphsMergeSort/main_sorted_strong_speedup.png)
+![main_sorted_weak_efficiency](/Graphs/GraphsMergeSort/main_sorted_weak_efficiency.png)
 
 #### Comp_Large: Average Time Spent Computing (Sorting) Per Processor
 For the measurements for this section, we used Avg time/rank from the Cali file, which would be the average amount of time each task takes to sort and merge its sections of the array.
@@ -625,13 +528,13 @@ These graphs are set up the same way as the strong scaling graphs for main, with
 - Unlike the graphs for main, these graphs generally decrease exponentially for every problem size (with some random variations that can be caused by outside factors, like grace speed).
 - These graphs follow the same trend between input types; Random is the slowest by a large margin, followed by permuted, sorted, and reversed all with close execution types.
 - These graphs all tend to approach 0 even for large problem sizes, demonstrating that for large computations, there is no bottleneck added as more processes are added. If we were to include comp_small in these, there would likely be a small bottleneck but not much. In addition, these graphs seem to decrease faster than the ones for main, which we will verify in the next section by analyzing the strong speedup/weak efficiency plots.
-![comp_large_65536](../Graphs/GraphsMergeSort/comp_large_65536.png)
-![comp_large_262144](../Graphs/GraphsMergeSort/comp_large_262144.png)
-![comp_large_1048576](../Graphs/GraphsMergeSort/comp_large_1048576.png)
-![comp_large_4194304](../Graphs/GraphsMergeSort/comp_large_4194304.png)
-![comp_large_16777216](../Graphs/GraphsMergeSort/comp_large_16777216.png)
-![comp_large_67108864](../Graphs/GraphsMergeSort/comp_large_67108864.png)
-![comp_large_268435456](../Graphs/GraphsMergeSort/comp_large_268435456.png)
+![comp_large_65536](/Graphs/GraphsMergeSort/comp_large_65536.png)
+![comp_large_262144](/Graphs/GraphsMergeSort/comp_large_262144.png)
+![comp_large_1048576](/Graphs/GraphsMergeSort/comp_large_1048576.png)
+![comp_large_4194304](/Graphs/GraphsMergeSort/comp_large_4194304.png)
+![comp_large_16777216](/Graphs/GraphsMergeSort/comp_large_16777216.png)
+![comp_large_67108864](/Graphs/GraphsMergeSort/comp_large_67108864.png)
+![comp_large_268435456](/Graphs/GraphsMergeSort/comp_large_268435456.png)
 
 ##### Strong Speedup/Weak Efficiency Plots
 These graphs show strong speedup and weak efficiency for the large computations in our program (such as one-processor merge sort and merging sorted arrays). We can observe the following:
@@ -640,14 +543,14 @@ These graphs show strong speedup and weak efficiency for the large computations 
 - The weak efficiency is pretty consistent and close to 1, but starts to decrease slightly as the process count gets large. This shows that at least for our computation steps, this program is pretty well parallelized (e.g. the amount of time to double the problem size with double the processors remains about constant).
 - The strong speedup is close to linear, but the smaller the problem size, the more it starts to deviate from that linearity. This is  because, past a certain point, the amount of work each task does becomes so small that the added processors don't add as much efficiency. This is also why we see a slight decrease in weak efficiency with an increasing process count.
 - Once again, there are no huge differences between the types of inputs for efficiency. In addition, just like for main, the larger problem sizes tend to hold the desired trends (linearity and weak efficiency = 1) better, as demonstrated by the lines being roughly in order of problem size.
-![comp_large_permuted_strong_speedup](../Graphs/GraphsMergeSort/comp_large_permuted_strong_speedup.png)
-![comp_large_permuted_weak_efficiency](../Graphs/GraphsMergeSort/comp_large_permuted_weak_efficiency.png)
-![comp_large_random_strong_speedup](../Graphs/GraphsMergeSort/comp_large_random_strong_speedup.png)
-![comp_large_random_weak_efficiency](../Graphs/GraphsMergeSort/comp_large_random_weak_efficiency.png)
-![comp_large_reversed_strong_speedup](../Graphs/GraphsMergeSort/comp_large_reversed_strong_speedup.png)
-![comp_large_reversed_weak_efficiency](../Graphs/GraphsMergeSort/comp_large_reversed_weak_efficiency.png)
-![comp_large_sorted_strong_speedup](../Graphs/GraphsMergeSort/comp_large_sorted_strong_speedup.png)
-![comp_large_sorted_weak_efficiency](../Graphs/GraphsMergeSort/comp_large_sorted_weak_efficiency.png)
+![comp_large_permuted_strong_speedup](/Graphs/GraphsMergeSort/comp_large_permuted_strong_speedup.png)
+![comp_large_permuted_weak_efficiency](/Graphs/GraphsMergeSort/comp_large_permuted_weak_efficiency.png)
+![comp_large_random_strong_speedup](/Graphs/GraphsMergeSort/comp_large_random_strong_speedup.png)
+![comp_large_random_weak_efficiency](/Graphs/GraphsMergeSort/comp_large_random_weak_efficiency.png)
+![comp_large_reversed_strong_speedup](/Graphs/GraphsMergeSort/comp_large_reversed_strong_speedup.png)
+![comp_large_reversed_weak_efficiency](/Graphs/GraphsMergeSort/comp_large_reversed_weak_efficiency.png)
+![comp_large_sorted_strong_speedup](/Graphs/GraphsMergeSort/comp_large_sorted_strong_speedup.png)
+![comp_large_sorted_weak_efficiency](/Graphs/GraphsMergeSort/comp_large_sorted_weak_efficiency.png)
 
 
 #### Comm: Average Time Spent Communicating Per Processor
@@ -659,27 +562,27 @@ These graphs are set up the same way as the strong scaling graphs for main, with
 - For smaller problem sizes, the average time spent communicating increases as process count increases. However, like our graphs for main, the graphs start to show the expected trend with larger process sizes, which is a decrease in average communication time as process count increases. This seems counter-intuitive, as with more processes we would expect more communication. However, even though we do have more communication as more tasks are added, we end up having less communication time per processor. This is because the smaller operations that are present for more processes are not time-consuming enough to lead to the same amount of average work for the processes.
 - A strange feature of these graphs is the sharp increase from 2 to 4 processes. This is due to the structure of the program, which makes the communication between the last two processes more ideal than other communications. Because of this, the comm time for 2 processes is lower than that for 4+ processes, and thus it deviates from the trend. If I were to change my implementation so that this wasn't the case, this would be a smooth curve all the way through -- however, the original design I had and the changes I made do not have the most optimal communication.
 - Unlike main and comp, there is no relationship between input type and these graphs, which makes sense because the communication time does not consider the contents of the data it is sending, but rather just the data itself.
-![comm_65536](../Graphs/GraphsMergeSort/comm_65536.png)
-![comm_262144](../Graphs/GraphsMergeSort/comm_262144.png)
-![comm_1048576](../Graphs/GraphsMergeSort/comm_1048576.png)
-![comm_4194304](../Graphs/GraphsMergeSort/comm_4194304.png)
-![comm_16777216](../Graphs/GraphsMergeSort/comm_16777216.png)
-![comm_67108864](../Graphs/GraphsMergeSort/comm_67108864.png)
-![comm_268435456](../Graphs/GraphsMergeSort/comm_268435456.png)
+![comm_65536](/Graphs/GraphsMergeSort/comm_65536.png)
+![comm_262144](/Graphs/GraphsMergeSort/comm_262144.png)
+![comm_1048576](/Graphs/GraphsMergeSort/comm_1048576.png)
+![comm_4194304](/Graphs/GraphsMergeSort/comm_4194304.png)
+![comm_16777216](/Graphs/GraphsMergeSort/comm_16777216.png)
+![comm_67108864](/Graphs/GraphsMergeSort/comm_67108864.png)
+![comm_268435456](/Graphs/GraphsMergeSort/comm_268435456.png)
 
 ##### Strong Speedup/Weak Efficiency Plots
 These graphs show strong speedup and weak efficiency for the communication between tasks in our program (such as send and receive). We can observe the following:
 
 - Like the other strong speedup graphs, the larger the problem, the better the speedup. However, these speedup graphs are nowhere near linear, and actually seem to be pretty constant/decrease to reach zero. This is because the communication, while it takes up slightly less time on average for more processes, definitely doesn't decrease efficiently for large sizes of N (and isn't meant to). The implementation of this algorithm focused mostly on achieving strong linear speedup for the computation portion (which is the expensive part of this problem), rather than minimizing communication time.
 - In the weak efficiency graphs, we see that these rapidly go to zero. Again, this is because the communication time isn't able to parallelize well for a merge sort algorithm - this is the feature that is bottlenecking the speedup of main. However, we can still observe that larger problem sizes have slightly larger values for efficiency, although not by much. This is also reflected in the strong speedup graphs, where larger problems exhibited better speedup.
-![comm_permuted_strong_speedup](../Graphs/GraphsMergeSort/comm_permuted_strong_speedup.png)
-![comm_permuted_weak_efficiency](../Graphs/GraphsMergeSort/comm_permuted_weak_efficiency.png)
-![comm_random_strong_speedup](../Graphs/GraphsMergeSort/comm_random_strong_speedup.png)
-![comm_random_weak_efficiency](../Graphs/GraphsMergeSort/comm_random_weak_efficiency.png)
-![comm_reversed_strong_speedup](../Graphs/GraphsMergeSort/comm_reversed_strong_speedup.png)
-![comm_reversed_weak_efficiency](../Graphs/GraphsMergeSort/comm_reversed_weak_efficiency.png)
-![comm_sorted_strong_speedup](../Graphs/GraphsMergeSort/comm_sorted_strong_speedup.png)
-![comm_sorted_weak_efficiency](../Graphs/GraphsMergeSort/comm_sorted_weak_efficiency.png)
+![comm_permuted_strong_speedup](/Graphs/GraphsMergeSort/comm_permuted_strong_speedup.png)
+![comm_permuted_weak_efficiency](/Graphs/GraphsMergeSort/comm_permuted_weak_efficiency.png)
+![comm_random_strong_speedup](/Graphs/GraphsMergeSort/comm_random_strong_speedup.png)
+![comm_random_weak_efficiency](/Graphs/GraphsMergeSort/comm_random_weak_efficiency.png)
+![comm_reversed_strong_speedup](/Graphs/GraphsMergeSort/comm_reversed_strong_speedup.png)
+![comm_reversed_weak_efficiency](/Graphs/GraphsMergeSort/comm_reversed_weak_efficiency.png)
+![comm_sorted_strong_speedup](/Graphs/GraphsMergeSort/comm_sorted_strong_speedup.png)
+![comm_sorted_weak_efficiency](/Graphs/GraphsMergeSort/comm_sorted_weak_efficiency.png)
 
 
 #### Possible Optimizations Missed
