@@ -53,13 +53,13 @@ For the measurements for this section, we used Avg time/rank from the Cali file,
 ![comp_small_sorted_weak_efficiency](../Graphs/GraphsColumnSort/comp_small_sorted_weak_efficiency.png)
 
 ## Comp_Large: Average Time Spent Computing (Sorting) Per Processor
-![comp_large_65536](../Graphs/GraphsMergeSort/comp_large_65536.png)
-![comp_large_262144](../Graphs/GraphsMergeSort/comp_large_262144.png)
-![comp_large_1048576](../Graphs/GraphsMergeSort/comp_large_1048576.png)
-![comp_large_4194304](../Graphs/GraphsMergeSort/comp_large_4194304.png)
-![comp_large_16777216](../Graphs/GraphsMergeSort/comp_large_16777216.png)
-![comp_large_67108864](../Graphs/GraphsMergeSort/comp_large_67108864.png)
-![comp_large_268435456](../Graphs/GraphsMergeSort/comp_large_268435456.png)
+![comp_large_65536](../Graphs/GraphsColumnSort/comp_large_65536.png)
+![comp_large_262144](../Graphs/GraphsColumnSort/comp_large_262144.png)
+![comp_large_1048576](../Graphs/GraphsColumnSort/comp_large_1048576.png)
+![comp_large_4194304](../Graphs/GraphsColumnSort/comp_large_4194304.png)
+![comp_large_16777216](../Graphs/GraphsColumnSort/comp_large_16777216.png)
+![comp_large_67108864](../Graphs/GraphsColumnSort/comp_large_67108864.png)
+![comp_large_268435456](../Graphs/GraphsColumnSort/comp_large_268435456.png)
 
 
 ## Comm: Average Time Spent Communicating Per Processor
