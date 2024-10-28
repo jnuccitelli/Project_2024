@@ -136,6 +136,7 @@ int main (int argc, char *argv[]) {
     int numPrevOnesBuf;
     int position;
     int destPos = 0;
+    int destProc = 0;
     int maxPrevArray = 0;
     bool arraySorted = true;
 
@@ -149,6 +150,7 @@ int main (int argc, char *argv[]) {
         inputString = "reversed";
     if(inputType == ONE_PERC_PERMUTED)
         inputString = "permuted";
+        
 
     cali::ConfigManager mgr;
     mgr.start();
@@ -164,19 +166,20 @@ int main (int argc, char *argv[]) {
     CALI_MARK_END(data_init_runtime);
 
     CALI_MARK_END(main_cali);
+    printf("Starting array sort process %d input type %d size %d\n", taskid, inputType, sizeOfArray * numTasks);
     //Print starting arrays
-    int rank = 0;
-    while (rank < numTasks) {
-        if (rank == taskid) {
-            if (rank == 0) {
-                printf("Starting Arrays\n");
-            }
-            printArray(arr, sizeOfArray, taskid);
-            fflush (stdout);
-        }
-        rank++;
-        MPI_Barrier(MPI_COMM_WORLD);
-    }
+    //int rank = 0;
+    //while (rank < numTasks) {
+    //   if (rank == taskid) {
+    //        if (rank == 0) {
+    //            printf("Starting Arrays\n");
+    //        }
+    //        printArray(arr, sizeOfArray, taskid);
+    //        fflush (stdout);
+    //    }
+    //    rank++;
+    //    MPI_Barrier(MPI_COMM_WORLD);
+    //}
 
     CALI_MARK_BEGIN(main_cali);
     for (int i = 0; i < 32; ++i) { //32 bits in an int
@@ -242,9 +245,7 @@ int main (int argc, char *argv[]) {
         CALI_MARK_BEGIN(comm_large);
         //Move elements to their sorted arrays
         int* newSortedArr = new int[sizeOfArray];
-        int destProcArray[sizeOfArray];
-        int destPosArray[sizeOfArray];
-        bool isHere[sizeOfArray] = {0};
+
 
         for (int j = 0; j < sizeOfArray; ++j) {
             if ((int) ((arr[j] >> i) & 1) == 0) {
@@ -254,30 +255,46 @@ int main (int argc, char *argv[]) {
             else {
                 position = j + numTotalZeores + numPrevOnes - numLocalZeroes;
             }
-            destProcArray[j] = position / sizeOfArray;
-            destPosArray[j] = position % sizeOfArray;
+            destProc = position / sizeOfArray;
+            destPos = position % sizeOfArray;
+            
 
-            if (destProcArray[j] == taskid) {
-                newSortedArr[destPosArray[j]] = arr[j];
-                isHere[destPosArray[j]] = 1;
+            int pair[2] = {arr[j], destPos};
+            int recvpair[2];
+            
+            if (destProc == taskid) {
+                newSortedArr[pair[1]] = pair[0];   
             }
+            else {
+            
+                MPI_Request request;
+              
+  
+                MPI_Isend(&pair, 2, MPI_INT, destProc, 0, MPI_COMM_WORLD, &request);
+                MPI_Recv(&recvpair, 2, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
+  
+                newSortedArr[recvpair[1]] = recvpair[0];
+                
+                MPI_Wait(&request, MPI_STATUS_IGNORE);
+            }
+
         }
 
-        for (int j = 0; j < sizeOfArray; ++j) {
-            for (int k = 0; k < numTasks; ++k) {
-                for (int l = 0; l < sizeOfArray; ++l) {
-                    if (k == destProcArray[l] && k != taskid && j == destPosArray[l]) {
-                        MPI_Send(&destPosArray[l], 1, MPI_INT, k, 1, MPI_COMM_WORLD);
-                        MPI_Send(&arr[l], 1, MPI_INT, k, 2, MPI_COMM_WORLD);
+        // for (int j = 0; j < sizeOfArray; ++j) {
+        //     for (int k = 0; k < numTasks; ++k) {
+        //         for (int l = 0; l < sizeOfArray; ++l) {
+        //             if (k == destProcArray[l] && k != taskid && j == destPosArray[l]) {
+        //                 MPI_Send(&destPosArray[l], 1, MPI_INT, k, 1, MPI_COMM_WORLD);
+        //                 MPI_Send(&arr[l], 1, MPI_INT, k, 2, MPI_COMM_WORLD);
 
-                    }
-                }
-                if (k == taskid && isHere[j] == 0) {
-                    MPI_Recv(&destPos, 1, MPI_INT, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, &status);
-                    MPI_Recv(&newSortedArr[destPos], 1, MPI_INT, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, & status);
-                }
-            }
-        }
+        //             }
+        //         }
+        //         if (k == taskid && isHere[j] == 0) {
+        //             MPI_Recv(&destPos, 1, MPI_INT, MPI_ANY_SOURCE, 1, MPI_COMM_WORLD, &status);
+        //             MPI_Recv(&newSortedArr[destPos], 1, MPI_INT, MPI_ANY_SOURCE, 2, MPI_COMM_WORLD, & status);
+        //         }
+        //     }
+        // }
 
 
 
@@ -285,6 +302,7 @@ int main (int argc, char *argv[]) {
         arr = newSortedArr;
         CALI_MARK_END(comm_large);
         CALI_MARK_END(comm);
+        
         
     }
     //Make sure all arrays finish sorting before printing and checking
@@ -317,18 +335,18 @@ int main (int argc, char *argv[]) {
 
 
     //Print finished arrays
-    rank = 0;
-    while (rank < numTasks) {
-        if (rank == taskid) {
-            if (rank == 0) {
-                printf("Finished Arrays\n");
-            }
-            printArray(arr, sizeOfArray, taskid);
-            fflush (stdout);
-        }
-        rank++;
-        MPI_Barrier(MPI_COMM_WORLD);
-    }
+    //rank = 0;
+    //while (rank < numTasks) {
+    //    if (rank == taskid) {
+    //        if (rank == 0) {
+    //            printf("Finished Arrays\n");
+    //        }
+    //        printArray(arr, sizeOfArray, taskid);
+    //        fflush (stdout);
+    //    }
+    //    rank++;
+    //    MPI_Barrier(MPI_COMM_WORLD);
+    //}
 
     adiak::init(NULL);
     adiak::launchdate();    // launch date of the job
@@ -339,7 +357,7 @@ int main (int argc, char *argv[]) {
     adiak::value("programming_model", "mpi"); // e.g. "mpi"
     adiak::value("data_type", "int"); // The datatype of input elements (e.g., double, int, float)
     adiak::value("size_of_data_type", sizeof(int)); // sizeof(datatype) of input elements in bytes (e.g., 1, 2, 4)
-    adiak::value("input_size", sizeOfArray); // The number of elements in input dataset (1000)
+    adiak::value("input_size", sizeOfArray * numTasks); // The number of elements in input dataset (1000)
     adiak::value("input_type", inputString); // For sorting, this would be choices: ("Sorted", "ReverseSorted", "Random", "1_perc_perturbed")
     adiak::value("num_procs", numTasks); // The number of processors (MPI ranks)
     adiak::value("scalability", "strong"); // The scalability of your algorithm. choices: ("strong", "weak")
