@@ -475,7 +475,7 @@ First each process in my code generates their local splitters. They do this by s
 ### Radix Sort Analysis: Alexander Nuccitelli
 Overall radix sort ran rather slowly due to the implementation of sending each element to each process and the end of every bit sorted, which caused massive communication overhead. Normally this would be fine however MPI doesn't like sending lots of messages very quickly, so some waits had to be added, which slowed down performance. However a good thing about this implemntation is that is is quite memory efficient, only requiring to store the main array and some constants. I was unable to run this algorithim at 1024 processors as grace would error. I was also unable to run at 2^28 array size, as this would require too much computing resources.
 
-#### Main Total time:
+#### Total time spent:
 Overall the program decreaces as the number of processors increase which is a sign of a parrallel program. It is intresting to note that initially there is a slight increase in time between 2 and 4 and 8 processors. This is because all of those processors still need to perform all of the communication, and the program isn't parallelized enough for the extra processors to take full effect. The reason that the randomly generated array takes the least time has to do input generation. Random inputs are generated at a smaller scale, causing there to be less communication, as the array can be sorted with less bits (but still the same number of comparisions).
 ![main_65536](/Graphs/RadixSortGraphs/main_65536.png)
 ![main_262144](/Graphs/RadixSortGraphs/main_262144.png)
@@ -484,13 +484,14 @@ Overall the program decreaces as the number of processors increase which is a si
 ![main_16777216](/Graphs/RadixSortGraphs/main_16777216.png)
 ![main_67108864](/Graphs/RadixSortGraphs/main_67108864.png)
 
-The comp large graphs look exactly as expected, with the number of processors massively decreasing computation time with an exponential decrease.
+The comp large graphs look exactly as expected, with the number of processors massively decreasing comparision time with an exponential decrease. There is also no difference between array type becuase the comparisions are performed on all 32 bits of an integer regardless if the array is sorted or not. Comparisions also account for a very small amount of the total time spent.
 ![comp_large_65536](/Graphs/RadixSortGraphs/comp_large_65536.png)
 ![comp_large_262144](/Graphs/RadixSortGraphs/comp_large_262144.png)
 ![comp_large_1048576](/Graphs/RadixSortGraphs/comp_large_1048576.png)
 ![comp_large_4194304](/Graphs/RadixSortGraphs/comp_large_4194304.png)
 ![comp_large_16777216](/Graphs/RadixSortGraphs/comp_large_16777216.png)
 
+Communication decreases roughly with processor count. The communication time also accounts for almost all of the total time spent. A randomly sorted array is faster because as the elements are sorted between arrays, they aren't moved into the same processor that they were once in if they are already sorted. Since the randomly generated elements are smaller, they finish sorting quicker and thus have to travel to less processes.
 ![comm_65536](/Graphs/RadixSortGraphs/comm_65536.png)
 ![comm_262144](/Graphs/RadixSortGraphs/comm_262144.png)
 ![comm_1048576](/Graphs/RadixSortGraphs/comm_1048576.png)
