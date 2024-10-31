@@ -499,9 +499,9 @@ Communication decreases roughly with processor count. The communication time als
 ![comm_16777216](/Graphs/RadixSortGraphs/comm_16777216.png)
 ![comm_67108864](/Graphs/RadixSortGraphs/comm_67108864.png)
 
-####Strong Speedup/Weak Efficiency Plots
+#### Strong Speedup/Weak Efficiency Plots
 
-
+Ultimately, this implementation of radix sort is quite inefficient. There is some speed up in main for an increase of processors, which is a sign of a parallelized program. In addtion, the bigger the array size, the greater the speed up. This makes sense as well as the bigger array size has more elements, which leads to a greater benifit of having more processsors. However the weak efficiency graphs demonstrate that even though the algorthims do speed up, they do not speed up well with the addition of new processors. As new processors are being added, the gain in performance isn't enoguh based on the extra resources spent.
 
 ![main_permuted_strong_speedup](/Graphs/RadixSortGraphs/main_permuted_strong_speedup.png)
 ![main_permuted_weak_efficiency](/Graphs/RadixSortGraphs/main_permuted_weak_efficiency.png)
@@ -512,6 +512,8 @@ Communication decreases roughly with processor count. The communication time als
 ![main_sorted_strong_speedup](/Graphs/RadixSortGraphs/main_sorted_strong_speedup.png)
 ![main_sorted_weak_efficiency](/Graphs/RadixSortGraphs/main_sorted_weak_efficiency.png)
 
+All of the problems for main are nonexistent for the comparison region. Espically as the array size increases, the weak efficiency graphs are just straight lines, which is ideal. The speedup graphs also corespond to the number of processors much closer than the main graphs.
+
 ![comp_large_permuted_strong_speedup](/Graphs/RadixSortGraphs/comp_large_permuted_strong_speedup.png)
 ![comp_large_permuted_weak_efficiency](/Graphs/RadixSortGraphs/comp_large_permuted_weak_efficiency.png)
 ![comp_large_random_strong_speedup](/Graphs/RadixSortGraphs/comp_large_random_strong_speedup.png)
@@ -520,6 +522,8 @@ Communication decreases roughly with processor count. The communication time als
 ![comp_large_reversed_weak_efficiency](/Graphs/RadixSortGraphs/comp_large_reversed_weak_efficiency.png)
 ![comp_large_sorted_strong_speedup](/Graphs/RadixSortGraphs/comp_large_sorted_strong_speedup.png)
 ![comp_large_sorted_weak_efficiency](/Graphs/RadixSortGraphs/comp_large_sorted_weak_efficiency.png)
+
+These communication region graphs almost look identical to the main graphs. This is becuase since the communication region takes up the vast majority of the time spent on the algorithm, its strong speedup and weak efficeincy graphs overpower the comparison region when combined into the main graphs.
 
 ![comm_permuted_strong_speedup](/Graphs/RadixSortGraphs/comm_permuted_strong_speedup.png)
 ![comm_permuted_weak_efficiency](/Graphs/RadixSortGraphs/comm_permuted_weak_efficiency.png)
