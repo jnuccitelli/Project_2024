@@ -501,7 +501,7 @@ Communication decreases roughly with processor count. The communication time als
 
 #### Strong Speedup/Weak Efficiency Plots
 
-Ultimately, this implementation of radix sort is quite inefficient. There is some speed up in main for an increase of processors, which is a sign of a parallelized program. In addtion, the bigger the array size, the greater the speed up. This makes sense as well as the bigger array size has more elements, which leads to a greater benifit of having more processsors. However the weak efficiency graphs demonstrate that even though the algorthims do speed up, they do not speed up well with the addition of new processors. As new processors are being added, the gain in performance isn't enoguh based on the extra resources spent.
+Ultimately, this implementation of radix sort is quite inefficient. There is some speed up in main for an increase of processors, which is a sign of a parallelized program. In addtion, the bigger the array size, the greater the speed up. This makes sense as well as the bigger array size has more elements, which leads to a greater benifit of having more processsors. However the weak efficiency graphs demonstrate that even though the algorthims do speed up, they do not speed up well with the addition of new processors. As new processors are being added, the gain in performance isn't enoguh based on the extra resources spent. There is little to no difference in input type.
 
 ![main_permuted_strong_speedup](/Graphs/RadixSortGraphs/main_permuted_strong_speedup.png)
 ![main_permuted_weak_efficiency](/Graphs/RadixSortGraphs/main_permuted_weak_efficiency.png)
@@ -512,7 +512,7 @@ Ultimately, this implementation of radix sort is quite inefficient. There is som
 ![main_sorted_strong_speedup](/Graphs/RadixSortGraphs/main_sorted_strong_speedup.png)
 ![main_sorted_weak_efficiency](/Graphs/RadixSortGraphs/main_sorted_weak_efficiency.png)
 
-All of the problems for main are nonexistent for the comparison region. Espically as the array size increases, the weak efficiency graphs are just straight lines, which is ideal. The speedup graphs also corespond to the number of processors much closer than the main graphs.
+All of the problems for main are nonexistent for the comparison region. Espically as the array size increases, the weak efficiency graphs are just straight lines, which is ideal. The speedup graphs also corespond to the number of processors much closer than the main graphs. There is no difference in input type, as input type doesn't affect the comparison regions time at all.
 
 ![comp_large_permuted_strong_speedup](/Graphs/RadixSortGraphs/comp_large_permuted_strong_speedup.png)
 ![comp_large_permuted_weak_efficiency](/Graphs/RadixSortGraphs/comp_large_permuted_weak_efficiency.png)
