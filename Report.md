@@ -499,6 +499,37 @@ Communication decreases roughly with processor count. The communication time als
 ![comm_16777216](/Graphs/RadixSortGraphs/comm_16777216.png)
 ![comm_67108864](/Graphs/RadixSortGraphs/comm_67108864.png)
 
+####Strong Speedup/Weak Efficiency Plots
+
+
+
+![main_permuted_strong_speedup](/Graphs/RadixSortGraphs/main_permuted_strong_speedup.png)
+![main_permuted_weak_efficiency](/Graphs/RadixSortGraphs/main_permuted_weak_efficiency.png)
+![main_random_strong_speedup](/Graphs/RadixSortGraphs/main_random_strong_speedup.png)
+![main_random_weak_efficiency](/Graphs/RadixSortGraphs/main_random_weak_efficiency.png)
+![main_reversed_strong_speedup](/Graphs/RadixSortGraphs/main_reversed_strong_speedup.png)
+![main_reversed_weak_efficiency](/Graphs/RadixSortGraphs/main_reversed_weak_efficiency.png)
+![main_sorted_strong_speedup](/Graphs/RadixSortGraphs/main_sorted_strong_speedup.png)
+![main_sorted_weak_efficiency](/Graphs/RadixSortGraphs/main_sorted_weak_efficiency.png)
+
+![comp_large_permuted_strong_speedup](/Graphs/RadixSortGraphs/comp_large_permuted_strong_speedup.png)
+![comp_large_permuted_weak_efficiency](/Graphs/RadixSortGraphs/comp_large_permuted_weak_efficiency.png)
+![comp_large_random_strong_speedup](/Graphs/RadixSortGraphs/comp_large_random_strong_speedup.png)
+![comp_large_random_weak_efficiency](/Graphs/RadixSortGraphs/comp_large_random_weak_efficiency.png)
+![comp_large_reversed_strong_speedup](/Graphs/RadixSortGraphs/comp_large_reversed_strong_speedup.png)
+![comp_large_reversed_weak_efficiency](/Graphs/RadixSortGraphs/comp_large_reversed_weak_efficiency.png)
+![comp_large_sorted_strong_speedup](/Graphs/RadixSortGraphs/comp_large_sorted_strong_speedup.png)
+![comp_large_sorted_weak_efficiency](/Graphs/RadixSortGraphs/comp_large_sorted_weak_efficiency.png)
+
+![comm_permuted_strong_speedup](/Graphs/RadixSortGraphs/comm_permuted_strong_speedup.png)
+![comm_permuted_weak_efficiency](/Graphs/RadixSortGraphs/comm_permuted_weak_efficiency.png)
+![comm_random_strong_speedup](/Graphs/RadixSortGraphs/comm_random_strong_speedup.png)
+![comm_random_weak_efficiency](/Graphs/RadixSortGraphs/comm_random_weak_efficiency.png)
+![comm_reversed_strong_speedup](/Graphs/RadixSortGraphs/comm_reversed_strong_speedup.png)
+![comm_reversed_weak_efficiency](/Graphs/RadixSortGraphs/comm_reversed_weak_efficiency.png)
+![comm_sorted_strong_speedup](/Graphs/RadixSortGraphs/comm_sorted_strong_speedup.png)
+![comm_sorted_weak_efficiency](/Graphs/RadixSortGraphs/comm_sorted_weak_efficiency.png)
+
 
 ### Merge Sort Analysis: Ariela Mitrani
 This document will focus on the analysis of the parallelized merge sort algorithm that was implemented for this project using a variety of different visualizations generated from Caliper files. The report file specified the following graphs to analyze for the presentation, so the graphs I will be analyzing in this document are:
@@ -530,6 +561,8 @@ This section has 7 graphs that span the seven different array sizes specified ab
 ![main_16777216](/Graphs/GraphsMergeSort/main_16777216.png)
 ![main_67108864](/Graphs/GraphsMergeSort/main_67108864.png)
 ![main_268435456](/Graphs/GraphsMergeSort/main_268435456.png)
+
+
 
 ##### Strong Speedup/Weak Efficiency Plots
 These graphs show both the strong speedup and weak efficiency relative to time on two processes for all of the given input types. Each graph has a line for every input size. The observations we can make are as follows:
