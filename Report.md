@@ -26,7 +26,10 @@ For this project, we will be comparing the following 5 algorithms:
 We will be implementing everything with MPI for this project.
 
 ### 2c. Pseudocode for each parallel algorithm
-- For MPI programs, include MPI calls you will use to coordinate between processes
+
+<details>
+  <summary><i>Bitonic Sort</i></summary>
+  
 #### Bitonic Sort: Maximiliano
 ```
 // Bitonic Sort is a parallel sorting algorithm that is efficient for hardware implementations and works well in a parallel computing environment.
@@ -106,6 +109,12 @@ void swap(int &first, int &second) {
 }
 
 ```
+
+</details>
+
+<details>
+  <summary><i>Sample Sort</i></summary>
+  
 #### Sample Sort: Joseph
 ```
 int arraySize = user input for array size;
@@ -136,6 +145,11 @@ std::sort(bucket);
 
 
 ```
+</details>
+
+<details>
+  <summary><i>Merge Sort</i></summary>
+  
 #### Merge Sort: Ariela
 ```
 int arraySize = user input for array size;
@@ -220,6 +234,11 @@ combineSortedArrays(sortedRight, sortedLeft, arraySizeRight, arraySizeLeft) {
   }
 }
 ```
+
+</details>
+
+<details>
+  <summary><i>Radix Sort</i></summary>
 
 #### Radix Sort: Alex
 ```
@@ -318,6 +337,12 @@ local_counting_sort(localArray, bitNumber) {
   
 }
 ```
+
+</details>
+
+<details>
+  <summary><i>Column Sort</i></summary> 
+  
 #### Column Sort: Patralika
 ```
 #include <mpi.h>
@@ -420,6 +445,7 @@ int main(int argc, char** argv) {
 }
 
 ```
+</details>
 
 ### 2d. Evaluation plan - what and how will you measure and compare
 - Compare different algorithms to sort and see how the performance differs across them
@@ -431,12 +457,20 @@ int main(int argc, char** argv) {
 ## 3. Descriptions of Implemented Algorithms
 In this section, we will discuss the ways we implemented our various sorting algorithms, such as how they communicate, how the computation workload is split, etc.
 
+<details>
+  <summary><i>Merge Sort</i></summary>
+  
 ### Merge Sort - Ariela
 My merge sort implementation was similar to my pseudocode, but after running analysis on the algorithm, I realized that I wasn't using the processors as efficiently as I could have. To fix this, I distributed the work evenly over all of the nodes by having them each generate their own data and sort it, then used the original parent-child hierarchy to determine which nodes should be executing the merge. Essentially, every node starts with an array of length totalArraySize/numNodes, sorts that, and then sends the sorted array to a specific task that will be responsible for merging the arrays together. Thus, in every step there are half the amount of processes working as there were in the previous step, which is the maximum amount of processes that can be working at one time for merge sort. 
 
 Thicket tree:
 ![merge_thicket_tree](ThicketTrees/mergethicket.png)
 
+</details>
+
+<details>
+  <summary><i>Radix Sort</i></summary>
+  
 ### Radix Sort - Alex
 This implmentation of radix sort only works for integers. It first generates arrays in each process. Each process has one segement of the array. After that it performs a local counting sort on the least significant bit of each integer. It also gets the local number of 0 bits, which come before the 1 bits. After sorting locally, the local number of 0's and 1's is distributed accordingly such that each processor has the total number of 0 bits, as well as the amount of 0 and 1 bits present in previous processors. This allows each processor to get the location of the sorted element. This has to be a stable sort, since otherwise the order would be messed up. Finally each element is moved to it's new position in reation to the total array. Intially in the psuedocode the implmentation used 1 sided communication using MPI_Put, however even though this would improve performance, it kept writing values to incorrect spots in memory. The actual implmenation uses 2 sided communication. The correctness checking first checks each array, and then checks the last element of the previous array with the first element of the next one.
 
@@ -444,9 +478,11 @@ Call Tree:
 ![image](https://github.com/user-attachments/assets/271a69e5-be2c-47c4-9b50-17839adb1e19)
 Meta Data:
 ![image](https://github.com/user-attachments/assets/eaaafc7e-c83b-456a-8bac-c42159de99d5)
+</details>
 
-
-
+<details>
+  <summary><i>Bitonic Sort</i></summary>
+  
 ### Bitonic Sort - Maximiliano 
 My implementation of the bitonic sort algorithm closely followed the pseudocode, but I made several optimizations to ensure efficient use of the available processors. Each processor begins by generating its own segment of the array, with the size of each segment determined by the total array size divided by the number of processors. This approach allows each node to perform a local bitonic sort on its chunk of the array independently.
 The bitonic sort operates in multiple stages. In each stage, the processors first determine the sorting direction based on their rank and the current step size. This hierarchical structure allows for efficient merging of the sorted segments, where pairs of processors collaborate to perform the bitonic merge operation. By dynamically adjusting the step size and merging the results, I ensured that the number of active processors reduces by half in each subsequent step, maximizing parallelism during the sorting process.
@@ -455,8 +491,11 @@ Call Tree:
 ![column_thicket_tree](/ThicketTrees/BitonicTree.png)
 Meta Data:
 ![column_metadata](/Metadata/BitonicMetadata.png)
+ </details>
 
-
+<details>
+  <summary><i>Column Sort</i></summary>
+  
 ### Column Sort - Patralika Ghosh
 My implementation of the column sort closely follows the structure of my pseudocode and is largely based on Leighton's Column Sort algorithm. The algorithm generates the array according to the input type, and each process is assigned a portion of indexes based on the input size and the number of processes. Each process then sorts its assigned column and returns the sorted result. Next, I transpose the matrix with the sorted columns and reshape it into submatrices of size (r/c) X r, where r is the number of rows and c is the number of columns.
 I repeat the process of column sorting, transposing, and reshaping two more times. Afterward, I perform a shift in the matrix by adding an extra column, where one half is filled with -inf values and the other half with +inf values. I sort the columns again, then remove the -inf and +inf values, resulting in a fully column-sorted matrix.
@@ -465,12 +504,22 @@ I repeat the process of column sorting, transposing, and reshaping two more time
 ![column_thicket_tree](/ThicketTrees/columnthicket.png)
 ![column_metadata](/Metadata/columnMetadata.png)
 
+</details>
+
+<details>
+  <summary><i>Sample Sort</i></summary>
+
 ### Sample Sort - Joseph Nuccitelli
 First each process in my code generates their local splitters. They do this by sorting their local data and sampling splitters. Then each process sends their local splitters to the main process. The main process then sorts all of the local samples and creates global splitters. These are then broadcasted out to everyone. Then each process puts each element into the array into a bucket. The last part each process is given a bucket. They copy their given bucket and then send other processes buckets to each process. After that each process sorts their new bucket and we have a sorted array.
 
 ![image](https://github.com/user-attachments/assets/568b0958-94ce-4325-8a2c-3c12047e5180)
 
+</details>
+
 ## 4. Performance evaluation
+
+<details>
+  <summary><i>Radix Sort</i></summary>
 
 ### Radix Sort Analysis: Alexander Nuccitelli
 Overall radix sort ran rather slowly due to the implementation of sending each element to each process and the end of every bit sorted, which caused massive communication overhead. Normally this would be fine however MPI doesn't like sending lots of messages very quickly, so some waits had to be added, which slowed down performance. However a good thing about this implemntation is that is is quite memory efficient, only requiring to store the main array and some constants. I was unable to run this algorithim at 1024 processors as grace would error. I was also unable to run at 2^28 array size, as this would require too much computing resources.
@@ -534,6 +583,10 @@ These communication region graphs almost look identical to the main graphs. This
 ![comm_sorted_strong_speedup](/Graphs/RadixSortGraphs/comm_sorted_strong_speedup.png)
 ![comm_sorted_weak_efficiency](/Graphs/RadixSortGraphs/comm_sorted_weak_efficiency.png)
 
+</details>
+
+<details>
+  <summary><i>Merge Sort</i></summary>
 
 ### Merge Sort Analysis: Ariela Mitrani
 This document will focus on the analysis of the parallelized merge sort algorithm that was implemented for this project using a variety of different visualizations generated from Caliper files. The report file specified the following graphs to analyze for the presentation, so the graphs I will be analyzing in this document are:
@@ -657,7 +710,35 @@ After running all of my analysis and looking at my code structure, I determined 
 - To make the above optimization possible, we would also have to send the data to the same task(s) as long as possible. My current implementation sends data from two different nodes to a third node, but a more efficient way to do this would be to have the merge happen on one of the nodes with data, reducing the amount of data that needs to be sent per merge step by half. To do this, process A would merge itself with process B rather than process C merging process B and process A together.
 
 However, aside from these optimizations, my merge sort is fairly efficient, even in the computation step which exhibits almost strong scaling. Merge sort isn't a perfectly parallelizable algorithm due to the communication overhead, but this implementation exhibits/explains the required trends.
+</details>
 
+<details>
+  <summary><i>Column Sort</i></summary>
+  
+  INSERT HERE
+
+</details>
+
+<details>
+  <summary><i>Sample Sort</i></summary>
+  
+  INSERT HERE
+
+</details>
+
+<details>
+  <summary><i>Bitonic Sort</i></summary>
+  
+  INSERT HERE
+
+</details>
+
+<details>
+  <summary><i>Cache Miss Analysis</i></summary>
+  
+  INSERT HERE
+
+</details>
 
 ## 5. Presentation
 Plots for the presentation should be as follows:
