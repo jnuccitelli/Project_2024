@@ -743,7 +743,15 @@ However, aside from these optimizations, my merge sort is fairly efficient, even
 <details>
   <summary><i>Overall Algorithm Comparison</i></summary>
   
+  ### Main Execution Time
+
+  Overall, each of the different algorthims had wildly different execution times. Radix sort was by far the slowest algorithm as it had quite a lot of communication overhead due to sending each element invduvally to each processor. The graph shown below is with radix sort.
   
+  ![overall graph with radix sort](/Graphs/ComparisonGraphs/OverallGraphWithRadixSort.png)
+
+  This is the same graph shown above but without radix sort, so other trends in algorthims can be viewed more clearly. Merge sort and sample sort perform by far the best, as they take limited time, even at lower processor counts. Intrestingly, bitonic sort intially takes more time than column sort, however column sort increases with the number of processors while bitonic sort decreases with the number of processors. The expected behavior for all algortihms is that as you add more processors, the execution time decreases. The reason the column sort doesn't display this property is that the communcation between processes increases faster than the comparison benifit for including more processors.
+
+  ![overall graph without radix sort](/Graphs/ComparisonGraphs/OverallGraphWithoutRadixSort.png)
 
 </details>
 
