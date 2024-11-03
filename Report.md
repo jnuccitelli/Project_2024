@@ -519,9 +519,20 @@ First each process in my code generates their local splitters. They do this by s
 ## 4. Performance evaluation
 <details>
   <summary><i>Sample Sort</i></summary>
-  
-Comm time vs threads. This followed the basic trend of increasing communication as process time increased. There are some blips in the graph that can be explained when there is a high amount of buckets compared to array size. What surprised me the most was how for big array sizes communication decreased at first. This on further thought makes sense as one of the factors of the complex bucket size vs. array size relationship. 
 
+![comm_65536](/Graphs/GraphsSampleSort/comm_65536.png)
+![comm_262144](/Graphs/GraphsSampleSort/comm_262144.png)
+![comm_1048576](/Graphs/GraphsSampleSort/comm_1048576.png)
+![comm_4194304](/Graphs/GraphsSampleSort/comm_4194304.png)
+![comm_16777216](/Graphs/GraphsSampleSort/comm_16777216.png)
+![comm_67108864](/Graphs/GraphsSampleSort/comm_67108864.png)  
+Comm time vs threads. This followed the basic trend of increasing communication as process time increased. There are some blips in the graph that can be explained when there is a high amount of buckets compared to array size. What surprised me the most was how for big array sizes communication decreased at first. This on further thought makes sense as one of the factors of the complex bucket size vs. array size relationship. 
+![comp_65536](/Graphs/GraphsSampleSort/comp_65536.png)
+![comp_262144](/Graphs/GraphsSampleSort/comp_262144.png)
+![comp_1048576](/Graphs/GraphsSampleSort/comp_1048576.png)
+![comp_4194304](/Graphs/GraphsSampleSort/comp_4194304.png)
+![comp_16777216](/Graphs/GraphsSampleSort/comp_16777216.png)
+![comp_67108864](/Graphs/GraphsSampleSort/comp_67108864.png)
 Comp time vs threads for various array sizes. These graphs are as expected. As the amount of threads increases so does the amount of buckets meaning that bucket size decreases. This means that each thread will have to sort less elements meaning that there will be less computation time. 
 ![main_65536](/Graphs/GraphsSampleSort/main_65536.png)
 ![main_262144](/Graphs/GraphsSampleSort/main_262144.png)
