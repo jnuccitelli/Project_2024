@@ -91,7 +91,6 @@ These graphs are set up the same way as the strong scaling graphs for main, with
 ![comm_4194304](../Graphs/CorrectGraphsBitonic/comm_4194304.png)
 ![comm_16777216](../Graphs/CorrectGraphsBitonic/comm_16777216.png)
 ![comm_67108864](../Graphs/CorrectGraphsBitonic/comm_67108864.png)
-![comm_268435456](../Graphs/CorrectGraphsBitonic/comm_268435456.png)
 
 ### Strong Speedup/Weak Efficiency Plots
 These graphs show strong speedup and weak efficiency for the communication between tasks in our program (such as send and receive). We can observe the following:
