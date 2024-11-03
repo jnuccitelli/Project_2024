@@ -1,4 +1,4 @@
-# Merge Sort Analysis: Maximiliano Pombo
+# Bitonic Sort Analysis: Maximiliano Pombo
 This document will focus on the analysis of the parallelized bitonic sort algorithm that was implemented for this project using a variety of different visualizations generated from Caliper files. The report file specified the following graphs to analyze for the presentation, so the graphs I will be analyzing in this document are:
 
 Only a subset of these will be in our final presentation, but the below will include a detailed analysis on each of these groups. These were tested with array sizes 2^16, 2^18, 2^20, 2^22, 2^24, 2^26, 2^28, process numbers 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, and input types sorted, random, reverse sorted, and 1% perturbed.
