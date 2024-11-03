@@ -32,12 +32,12 @@ These graphs show both the strong speedup and weak efficiency relative to time o
 
 ![main_permuted_strong_speedup](../Graphs/CorrectGraphsBitonic/main_permuted_strong_speedup.png)
 ![main_permuted_weak_efficiency](../Graphs/CorrectGraphsBitonic/main_permuted_weak_efficiency.png)
-![main_random_strong_speedup](../Graphs/CorrectGraphsBitonic/main_random_strong_speedup.png)
-![main_random_weak_efficiency](../Graphs/CorrectGraphsBitonic/main_random_weak_efficiency.png)
+![main_random_strong_speedup](../Graphs/CorrectGraphsBitonic/main_Random_strong_speedup.png)
+![main_random_weak_efficiency](../Graphs/CorrectGraphsBitonic/main_Random_weak_efficiency.png)
 ![main_reversed_strong_speedup](../Graphs/CorrectGraphsBitonic/main_reversed_strong_speedup.png)
 ![main_reversed_weak_efficiency](../Graphs/CorrectGraphsBitonic/main_reversed_weak_efficiency.png)
-![main_sorted_strong_speedup](../Graphs/CorrectGraphsBitonic/main_sorted_strong_speedup.png)
-![main_sorted_weak_efficiency](../Graphs/CorrectGraphsBitonic/main_sorted_weak_efficiency.png)
+![main_sorted_strong_speedup](../Graphs/CorrectGraphsBitonic/main_Sorted_strong_speedup.png)
+![main_sorted_weak_efficiency](../Graphs/CorrectGraphsBitonic/main_Sorted_weak_efficiency.png)
 
 ## Comp_Large: Average Time Spent Computing (Sorting) Per Processor
 For the measurements for this section, we used Avg time/rank from the Cali file, which would be the average amount of time each task takes to sort and merge its sections of the array.
