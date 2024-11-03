@@ -523,12 +523,12 @@ First each process in my code generates their local splitters. They do this by s
 Comm time vs threads. This followed the basic trend of increasing communication as process time increased. There are some blips in the graph that can be explained when there is a high amount of buckets compared to array size. What surprised me the most was how for big array sizes communication decreased at first. This on further thought makes sense as one of the factors of the complex bucket size vs. array size relationship. 
 
 Comp time vs threads for various array sizes. These graphs are as expected. As the amount of threads increases so does the amount of buckets meaning that bucket size decreases. This means that each thread will have to sort less elements meaning that there will be less computation time. 
-![main_65536](/Graphs/SampleSortGraphs/main_65536.png)
-![main_262144](/Graphs/SampleSortGraphs/main_262144.png)
-![main_1048576](/Graphs/SampleSortGraphs/main_1048576.png)
-![main_4194304](/Graphs/SampleSortGraphs/main_4194304.png)
-![main_16777216](/Graphs/SampleSortGraphs/main_16777216.png)
-![main_67108864](/Graphs/SampleSortGraphs/main_67108864.png)
+![main_65536](/Graphs/GraphsSampleSort/main_65536.png)
+![main_262144](/Graphs/GraphsSampleSort/main_262144.png)
+![main_1048576](/Graphs/GraphsSampleSort/main_1048576.png)
+![main_4194304](/Graphs/GraphsSampleSort/main_4194304.png)
+![main_16777216](/Graphs/GraphsSampleSort/main_16777216.png)
+![main_67108864](/Graphs/GraphsSampleSort/main_67108864.png)
 Main time vs process count for various array sizes. At large array sizes my program behaves as intended. With large array sizes total time is decreased as expected. With small array sizes though this is not always the case. Sorting is scaled on N log N while communication is scaled linearly. However at low array sizes communication takes the most time out of all the algorithms. Blips can be seen in some of the graphs when the proc count goes to 64 this is a result of grace being separated between different nodes. These trends make a lot of sense given the graphs.
 
 Speedup weak and strong and efficiency weak and strong plots by threads. These trends all really make a fair amount of sense with speed increasing as problem size increases for high array counts but slightly lower for low array counts. Speedup was compared based on the 2 thread case. A spike in the comm graph for the speedup is the reason for a change in the algorithm based on the processor size. Anything above 64 processes and more synchronization is needed. This showcases the loss in speedup in communication above 64 processes.
