@@ -541,7 +541,31 @@ Comp time vs threads for various array sizes. These graphs are as expected. As t
 ![main_16777216](/Graphs/GraphsSampleSort/main_16777216.png)
 ![main_67108864](/Graphs/GraphsSampleSort/main_67108864.png)
 Main time vs process count for various array sizes. At large array sizes my program behaves as intended. With large array sizes total time is decreased as expected. With small array sizes though this is not always the case. Sorting is scaled on N log N while communication is scaled linearly. However at low array sizes communication takes the most time out of all the algorithms. Blips can be seen in some of the graphs when the proc count goes to 64 this is a result of grace being separated between different nodes. These trends make a lot of sense given the graphs.
+![main_permuted_strong_speedup](/Graphs/GraphsSampleSort/main_permuted_strong_speedup.png)
+![main_permuted_weak_efficiency](/Graphs/GraphsSampleSort/main_permuted_weak_efficiency.png)
+![main_random_strong_speedup](/Graphs/GraphsSampleSort/main_random_strong_speedup.png)
+![main_random_weak_efficiency](/Graphs/GraphsSampleSort/main_random_weak_efficiency.png)
+![main_reversed_strong_speedup](/Graphs/GraphsSampleSort/main_reversed_strong_speedup.png)
+![main_reversed_weak_efficiency](/Graphs/GraphsSampleSort/main_reversed_weak_efficiency.png)
+![main_sorted_strong_speedup](/Graphs/GraphsSampleSort/main_sorted_strong_speedup.png)
+![main_sorted_weak_efficiency](/Graphs/GraphsSampleSort/main_sorted_weak_efficiency.png)
+![comm_permuted_strong_speedup](/Graphs/GraphsSampleSort/comm_permuted_strong_speedup.png)
+![comm_permuted_weak_efficiency](/Graphs/GraphsSampleSort/comm_permuted_weak_efficiency.png)
+![comm_random_strong_speedup](/Graphs/GraphsSampleSort/comm_random_strong_speedup.png)
+![comm_random_weak_efficiency](/Graphs/GraphsSampleSort/comm_random_weak_efficiency.png)
+![comm_reversed_strong_speedup](/Graphs/GraphsSampleSort/comm_reversed_strong_speedup.png)
+![comm_reversed_weak_efficiency](/Graphs/GraphsSampleSort/comm_reversed_weak_efficiency.png)
+![comm_sorted_strong_speedup](/Graphs/GraphsSampleSort/comm_sorted_strong_speedup.png)
+![comm_sorted_weak_efficiency](/Graphs/GraphsSampleSort/comm_sorted_weak_efficiency.png)
 
+![comp_permuted_strong_speedup](/Graphs/GraphsSampleSort/comp_permuted_strong_speedup.png)
+![comp_permuted_weak_efficiency](/Graphs/GraphsSampleSort/comp_permuted_weak_efficiency.png)
+![comp_random_strong_speedup](/Graphs/GraphsSampleSort/comp_random_strong_speedup.png)
+![comp_random_weak_efficiency](/Graphs/GraphsSampleSort/comp_random_weak_efficiency.png)
+![comp_reversed_strong_speedup](/Graphs/GraphsSampleSort/comp_reversed_strong_speedup.png)
+![comp_reversed_weak_efficiency](/Graphs/GraphsSampleSort/comp_reversed_weak_efficiency.png)
+![comp_sorted_strong_speedup](/Graphs/GraphsSampleSort/comp_sorted_strong_speedup.png)
+![comp_sorted_weak_efficiency](/Graphs/GraphsSampleSort/comp_sorted_weak_efficiency.png)
 Speedup weak and strong and efficiency weak and strong plots by threads. These trends all really make a fair amount of sense with speed increasing as problem size increases for high array counts but slightly lower for low array counts. Speedup was compared based on the 2 thread case. A spike in the comm graph for the speedup is the reason for a change in the algorithm based on the processor size. Anything above 64 processes and more synchronization is needed. This showcases the loss in speedup in communication above 64 processes.
 
 </details>
