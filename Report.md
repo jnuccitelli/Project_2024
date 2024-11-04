@@ -1068,8 +1068,15 @@ After running all of my analysis and looking at my code structure, I determined 
 
   ### Communication Time
 
+The overall comm time for radix sort is significantly higher because of how radix sort was implemented. Radix sort uses bitwise sorting with a base of 32, so the sorting is complete only after 32 iterations. Also, after sorting each element is sent to the new araay individually as a result of which the number of MPI_send calls that are created are 32*array_size. Column sort is not properly or efficiently parallelized and it uses std::sort to sort each column which has an affect on the overall communication time as the numerb of processors increases.
+
 ![comm_time_overall](/Images/comm_time_overall.png)
+
+For the speedup graph, radix and merge have a linear speedup which is a good sign but for merge sort it reaches a saturation point after which the speedup decreases. Sample sort is supposed to be the best in communication time and worst for computation time. However, the sample sort trend for the speedup graph is similar to bitonic sort and column osrt which suggests that implementation of smaple sort was not efficient. For column sort and bitonic sort, the algorithm is not parallelized properly and with that there is a exponential decay in their speedup.
+
 ![comm_time_speedup](/Images/comm_time_speedup.png)
+
+None of the algorithms are able to parallelize well for communication time. As a result of which, the efficiency trends rapidly go to zero.
 ![comm_time_efficiency](/Images/comm_time_efficiency.png)
   
 
