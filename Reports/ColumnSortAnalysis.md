@@ -6,7 +6,7 @@ r represents the number of rows and c the number of columns. The process of colu
 
 ![16_calcs](/Images/16_calcs.png)
 
-But as I ran my program with more number of processes, the overall runtime increased so I increased the number of columns and modified the rows accordingly. I cannot choose a high number like 512 because for 512 rows I can only run the test case with array of size 2^28.
+But as I ran my program with more number of processes, the overall runtime increased so I increased the number of columns and modified the rows accordingly. I cannot choose a high number like 512 because for 512 rows I can only run the test case with array of size 2^28. My algorithm seems to depend on how the data is distributed because I use std::sort for sorting each column locally which is easier with a small input size. 
 
 ![512_calcs](/Images/512_calcs.png)
 
@@ -19,9 +19,14 @@ I faced network errors while running the program on 1024 processors, leading to 
 
 
 ## Main: Total Time for Program Execution
-For the measurements for this section, we used Max time/rank from the Cali file, which would be the time taken by the task that does the final merge and the correctness check.
+
+For the measurements for this section, we used Max time/rank from the Cali file, which would be the time taken by the task that does is the entire algorithm.
 
 ### Strong Scaling Plots
+
+For smaller input sizes, using fewer threads might be more efficient because the overhead from managing communication between threads can outweigh the benefits of parallelization.
+
+For larger input sizes, improving the way processes are handled can help keep the performance gains going beyond the initial improvement phase (around 2–4 threads). Also, finding ways to balance the workload across threads could improve efficiency, especially for different input types.
 
 ![main_65536](../Graphs/GraphsColumnSort/main_65536.png)
 ![main_262144](../Graphs/GraphsColumnSort/main_262144.png)
@@ -33,6 +38,10 @@ For the measurements for this section, we used Max time/rank from the Cali file,
 
 ### Strong Speedup/Weak Efficiency Plots
 
+The plots show that the algorithm's ability to scale effectively drops off as more threads are used. Speedup quickly decreases after a certain point, and the weak scaling efficiency becomes nearly zero when many threads are involved. This suggests that communication between threads becomes a major issue, slowing things down.
+Larger input sizes generally perform better, with higher speedups and better efficiency for a longer time, but they still struggle with performance as thread count grows. Smaller input sizes face the most trouble, even showing worse performance as the overhead from parallelization becomes too large compared to the actual computation.
+
+
 ![main_permuted_strong_speedup](../Graphs/GraphsColumnSort/main_permuted_strong_speedup.png)
 ![main_permuted_weak_efficiency](../Graphs/GraphsColumnSort/main_permuted_weak_efficiency.png)
 ![main_random_strong_speedup](../Graphs/GraphsColumnSort/main_random_strong_speedup.png)
@@ -43,8 +52,16 @@ For the measurements for this section, we used Max time/rank from the Cali file,
 ![main_sorted_weak_efficiency](../Graphs/GraphsColumnSort/main_sorted_weak_efficiency.png)
 
 ## Comp_Small: Average Time Spent Computing (Sorting) Per Processor
-For the measurements for this section, we used Avg time/rank from the Cali file, which would be the average amount of time each task takes to sort and merge its sections of the array.
+
+For the measurements for this section, we used Avg time/rank from the Cali file, which would be the average amount of time each task takes to sort and merge its sections of the array. This part of the column sort algorithm is parallelized.
+
 ### Strong Scaling Plots
+
+For all input sizes, the time taken significantly decreases as the number of threads increases, showing a sharp drop from 0 to 32 threads. However, the performance gains diminish beyond a certain thread count, indicating diminishing returns with higher parallelization.
+
+For these smaller inputs, there’s a steep initial drop in time taken as threads increase from 1 to around 32, after which the time remains nearly constant. This suggests that the overhead of additional processors outweighs the benefit for smaller input sizes beyond this point.The results are consistent across different input types, meaning the algorithm's performance is relatively independent to the input type.
+
+For the largest input size, the plot only goes up to 16 threads and shows a more gradual decline in time with increasing threads. This suggests that the problem is large enough to benefit from parallelization across all available threads within this range.
 
 ![comp_small_65536](../Graphs/GraphsColumnSort/comp_small_65536.png)
 ![comp_small_262144](../Graphs/GraphsColumnSort/comp_small_262144.png)
@@ -55,6 +72,12 @@ For the measurements for this section, we used Avg time/rank from the Cali file,
 ![comp_small_268435456](../Graphs/GraphsColumnSort/comp_small_268435456.png)
 
 ### Strong Speedup/Weak Efficiency Plots
+
+For all input types, there is a clear increase in speedup as the number of threads increases, especially for larger input sizes. This shows that the algorithm benefits from parallelization, achieving better speedup with more threads. Speedup improves consistently up to 512 threads, with larger input sizes achieving the highest speedup, which is expected since larger datasets benefit more from parallel processing. Smaller input sizes see diminishing returns in speedup as threads increase, indicating that communication and synchronization overhead start to dominate at higher thread counts for smaller data sizes. Larger inputs generally show higher speedup across all thread counts, which suggests that the algorithm scales better with increasing data size. This aligns with the expectation that larger workloads offer more opportunities for parallel processing to be effective.
+
+Weak scaling efficiency starts high with low thread counts, dips for 128 and 256 processorts and then recovers as threads increase up to 512. For larger input sizes, efficiency remains closer to optimal (i.e., around 1.0 or above) even as the number of threads grows, especially at higher thread counts. This suggests that larger inputs handle the added overhead more effectively. The dips and peaks in the efficiency plots can be as a result of changing the rows to columns ratio or how I distributed the data in the matrix, which I added a table above of how I have been changing it.
+
+Sorted inputs show lower efficiency at smaller input sizes across all thread counts, as the parallelization overhead outweighs any benefits when there is less work to be done. Reverse inputs maintain moderately high efficiency across all thread counts but don’t reach the peak levels of 1% Perturbed data. The Random input type shows larger drops in efficiency at mid-range thread counts compared to other inputs, particularly for smaller input sizes. The 1% Perturbed input tends to maintain higher efficiency than other input types across most thread counts, especially for larger input sizes.
 
 ![comp_small_permuted_strong_speedup](../Graphs/GraphsColumnSort/comp_small_permuted_strong_speedup.png)
 ![comp_small_permuted_weak_efficiency](../Graphs/GraphsColumnSort/comp_small_permuted_weak_efficiency.png)
