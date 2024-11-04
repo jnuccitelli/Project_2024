@@ -1103,7 +1103,12 @@ None of the algorithms are able to parallelize well for communication time. As a
   
   ![L1Miss](/Graphs/CacheMissL1.png)
   ![L2Miss](/Graphs/CacheMissL2.png)
-  
+  Above are the L1 and L2 cache miss graphs for our sorting algorithms. Merge sort is not present since the creator is not part of the honors section. The most jarring thing for the above graphs is the order of magnitude. This is because of the time it takes to run the algorithms. Since sample sort takes less time than the other algorithms so it makes sense that it would be less. Column sort is by far the least optimized for the cache miss due to the large amount of L2 misses present and the fact that it runs significantly faster than radix sort despite having more L2 misses than it and comparable L1 misses. Ideal trends involve the cache misses decreasing as the processes increase since each process will have less data. This is not always the case. 
+    ![RadixMiss](/Graphs/cacheRadix.png)
+  ![SampleMiss](/Graphs/CacheSample.png)
+    ![ColumnMiss](/Graphs/CacheColumn.png)
+
+
 </details>
 
 ## 6. Final Report
