@@ -541,29 +541,29 @@ Comp time vs threads for various array sizes. These graphs are as expected. As t
 ![main_16777216](/Graphs/GraphsSampleSort/main_16777216.png)
 ![main_67108864](/Graphs/GraphsSampleSort/main_67108864.png)
 Main time vs process count for various array sizes. At large array sizes my program behaves as intended. With large array sizes total time is decreased as expected. With small array sizes though this is not always the case. Sorting is scaled on N log N while communication is scaled linearly. However at low array sizes communication takes the most time out of all the algorithms. Blips can be seen in some of the graphs when the proc count goes to 64 this is a result of grace being separated between different nodes. These trends make a lot of sense given the graphs.
-![main_permuted_strong_speedup](/Graphs/GraphsSampleSort/main_permuted_strong_speedup.png)
-![main_permuted_weak_efficiency](/Graphs/GraphsSampleSort/main_permuted_weak_efficiency.png)
+![main_permuted_strong_speedup](/Graphs/GraphsSampleSort/main_1_perc_perturbed_strong_speedup.png)
+![main_permuted_weak_efficiency](/Graphs/GraphsSampleSort/main_1_perc_perturbed_weak_efficiency.png)
 ![main_random_strong_speedup](/Graphs/GraphsSampleSort/main_random_strong_speedup.png)
 ![main_random_weak_efficiency](/Graphs/GraphsSampleSort/main_random_weak_efficiency.png)
-![main_reversed_strong_speedup](/Graphs/GraphsSampleSort/main_reversed_strong_speedup.png)
-![main_reversed_weak_efficiency](/Graphs/GraphsSampleSort/main_reversed_weak_efficiency.png)
+![main_reversed_strong_speedup](/Graphs/GraphsSampleSort/main_ReverseSorted_strong_speedup.png)
+![main_reversed_weak_efficiency](/Graphs/GraphsSampleSort/main_ReverseSorted_weak_efficiency.png)
 ![main_sorted_strong_speedup](/Graphs/GraphsSampleSort/main_sorted_strong_speedup.png)
 ![main_sorted_weak_efficiency](/Graphs/GraphsSampleSort/main_sorted_weak_efficiency.png)
-![comm_permuted_strong_speedup](/Graphs/GraphsSampleSort/comm_permuted_strong_speedup.png)
-![comm_permuted_weak_efficiency](/Graphs/GraphsSampleSort/comm_permuted_weak_efficiency.png)
+![comm_permuted_strong_speedup](/Graphs/GraphsSampleSort/comm_1_perc_perturbed_strong_speedup.png)
+![comm_permuted_weak_efficiency](/Graphs/GraphsSampleSort/comm_1_perc_perturbed_weak_efficiency.png)
 ![comm_random_strong_speedup](/Graphs/GraphsSampleSort/comm_random_strong_speedup.png)
 ![comm_random_weak_efficiency](/Graphs/GraphsSampleSort/comm_random_weak_efficiency.png)
-![comm_reversed_strong_speedup](/Graphs/GraphsSampleSort/comm_reversed_strong_speedup.png)
-![comm_reversed_weak_efficiency](/Graphs/GraphsSampleSort/comm_reversed_weak_efficiency.png)
+![comm_reversed_strong_speedup](/Graphs/GraphsSampleSort/comm_ReverseSorted_strong_speedup.png)
+![comm_reversed_weak_efficiency](/Graphs/GraphsSampleSort/comm_ReverseSorted_weak_efficiency.png)
 ![comm_sorted_strong_speedup](/Graphs/GraphsSampleSort/comm_sorted_strong_speedup.png)
 ![comm_sorted_weak_efficiency](/Graphs/GraphsSampleSort/comm_sorted_weak_efficiency.png)
 
-![comp_permuted_strong_speedup](/Graphs/GraphsSampleSort/comp_permuted_strong_speedup.png)
-![comp_permuted_weak_efficiency](/Graphs/GraphsSampleSort/comp_permuted_weak_efficiency.png)
+![comp_permuted_strong_speedup](/Graphs/GraphsSampleSort/comp_1_perc_perturbed_strong_speedup.png)
+![comp_permuted_weak_efficiency](/Graphs/GraphsSampleSort/comp_1_perc_perturbed_weak_efficiency.png)
 ![comp_random_strong_speedup](/Graphs/GraphsSampleSort/comp_random_strong_speedup.png)
 ![comp_random_weak_efficiency](/Graphs/GraphsSampleSort/comp_random_weak_efficiency.png)
-![comp_reversed_strong_speedup](/Graphs/GraphsSampleSort/comp_reversed_strong_speedup.png)
-![comp_reversed_weak_efficiency](/Graphs/GraphsSampleSort/comp_reversed_weak_efficiency.png)
+![comp_reversed_strong_speedup](/Graphs/GraphsSampleSort/comp_ReverseSorted_strong_speedup.png)
+![comp_reversed_weak_efficiency](/Graphs/GraphsSampleSort/comp_ReverseSorted_weak_efficiency.png)
 ![comp_sorted_strong_speedup](/Graphs/GraphsSampleSort/comp_sorted_strong_speedup.png)
 ![comp_sorted_weak_efficiency](/Graphs/GraphsSampleSort/comp_sorted_weak_efficiency.png)
 Speedup weak and strong and efficiency weak and strong plots by threads. These trends all really make a fair amount of sense with speed increasing as problem size increases for high array counts but slightly lower for low array counts. Speedup was compared based on the 2 thread case. A spike in the comm graph for the speedup is the reason for a change in the algorithm based on the processor size. Anything above 64 processes and more synchronization is needed. This showcases the loss in speedup in communication above 64 processes.
@@ -913,13 +913,6 @@ The algorithm struggles to scale effectively as more threads are used. Speedup a
 </details>
 
 <details>
-  <summary><i>Sample Sort</i></summary>
-  
-  INSERT HERE
-
-</details>
-
-<details>
   <summary><i>Bitonic Sort</i></summary>
   
   # Bitonic Sort Analysis: Maximiliano Pombo
@@ -1046,12 +1039,15 @@ After running all of my analysis and looking at my code structure, I determined 
 
 </details>
 
-<details>
-  <summary><i>Cache Miss Analysis</i></summary>
-  
-  INSERT HERE
+## 5. Presentation
+Plots for the presentation should be as follows:
+- For each implementation:
+    - For each of comp_large, comm, and main:
+        - Strong scaling plots for each input_size with lines for input_type (7 plots - 4 lines each)
+        - Strong scaling speedup plot for each input_type (4 plots)
+        - Weak scaling plots for each input_type (4 plots)
 
-</details>
+Analyze these plots and choose a subset to present and explain in your presentation.
 
 <details>
   <summary><i>Overall Algorithm Comparison</i></summary>
@@ -1064,9 +1060,30 @@ After running all of my analysis and looking at my code structure, I determined 
 
   This is the same graph shown above but without radix sort, so other trends in algorthims can be viewed more clearly. Merge sort and sample sort perform by far the best, as they take limited time, even at lower processor counts. Intrestingly, bitonic sort intially takes more time than column sort, however column sort increases with the number of processors while bitonic sort decreases with the number of processors. The expected behavior for all algortihms is that as you add more processors, the execution time decreases. The reason the column sort doesn't display this property is that the communcation between processes increases faster than the comparison benifit for including more processors.
 
-  ![overall graph without radix sort](/Graphs/ComparisonGraphs/OverallGraphWithoutRadixSort.jpg)
+  ![overall graph without radix sort](/Graphs/ComparisonGraphs/OverallGraphWithoutRadixSort.jpg)  
 
-  ### Communication Time
+</details>
+
+<details>
+  <summary><i>Overall Scaling Comparison</i></summary>
+  
+  ### Overall Scaling Comparison
+
+  Although the details on why the individual lines on these graphs look the way they do are included in the individual algorithm analysis shown above, there are some details for these graphs that can be touched on. 
+
+  First of all, looking at the computation time, it may appear strange that the column sort computation is linear scaling. However, this graph only looks at the parallelized part of column sort, which explains this. Furthermore, it may be surprising that sample sort exhibits weak computation time and ends up having the best scaling for the whole program. However, this is because the communication in sample sort is more efficient and does not detract much from the computation speedup, unlike with the other algorithms. We could also possibly get more trend information from more processes to see how the behavior of sample sort compares to the other algorithms as it grows, but due to limitations with execution time, we could not get this data.
+  
+  ![speedupmain](/Graphs/ComparisonGraphs/strongmain.png)
+  ![weakefficiencymain](/Graphs/ComparisonGraphs/weakmain.png)
+  ![speedupcomp](/Graphs/ComparisonGraphs/strongcomp.png)
+  ![weakefficiencycomp](/Graphs/ComparisonGraphs/weakcomp.png)
+
+</details>
+
+<details>
+  <summary><i>Communication Analysis</i></summary>
+  
+### Communication Time
 
 The overall comm time for radix sort is significantly higher because of how radix sort was implemented. Radix sort uses bitwise sorting with a base of 32, so the sorting is complete only after 32 iterations. Also, after sorting each element is sent to the new araay individually as a result of which the number of MPI_send calls that are created are 32*array_size. Column sort is not properly or efficiently parallelized and it uses std::sort to sort each column which has an affect on the overall communication time as the numerb of processors increases.
 
@@ -1078,19 +1095,21 @@ For the speedup graph, radix and merge have a linear speedup which is a good sig
 
 None of the algorithms are able to parallelize well for communication time. As a result of which, the efficiency trends rapidly go to zero.
 ![comm_time_efficiency](/Images/comm_time_efficiency.png)
-  
 
 </details>
 
-## 5. Presentation
-Plots for the presentation should be as follows:
-- For each implementation:
-    - For each of comp_large, comm, and main:
-        - Strong scaling plots for each input_size with lines for input_type (7 plots - 4 lines each)
-        - Strong scaling speedup plot for each input_type (4 plots)
-        - Weak scaling plots for each input_type (4 plots)
+<details>
+  <summary><i>Cache Miss Analysis</i></summary>
+  
+  ![L1Miss](/Graphs/CacheMissL1.png)
+  ![L2Miss](/Graphs/CacheMissL2.png)
+  Above are the L1 and L2 cache miss graphs for our sorting algorithms. Merge sort is not present since the creator is not part of the honors section. The most jarring thing for the above graphs is the order of magnitude. This is because of the time it takes to run the algorithms. Since sample sort takes less time than the other algorithms so it makes sense that it would be less. Column sort is by far the least optimized for the cache miss due to the large amount of L2 misses present and the fact that it runs significantly faster than radix sort despite having more L2 misses than it and comparable L1 misses. Ideal trends involve the cache misses decreasing as the processes increase since each process will have less data. This is not always the case. 
+    ![RadixMiss](/Graphs/cacheRadix.png)
+  ![SampleMiss](/Graphs/CacheSample.png)
+    ![ColumnMiss](/Graphs/CacheColumn.png)
+The cache miss has some effect on input type. For radix there is little effect which makes sense based on how the input types work for that algorithm. Column sort and Sample sort both use STD sort which has an effect on cache misses accordingly.
 
-Analyze these plots and choose a subset to present and explain in your presentation.
+</details>
 
 ## 6. Final Report
 Submit a zip named `TeamX.zip` where `X` is your team number. The zip should contain the following files:
