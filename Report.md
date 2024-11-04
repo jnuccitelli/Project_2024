@@ -1066,6 +1066,13 @@ After running all of my analysis and looking at my code structure, I determined 
 
   ![overall graph without radix sort](/Graphs/ComparisonGraphs/OverallGraphWithoutRadixSort.jpg)
 
+  ### Communication Time
+
+![comm_time_overall](/Images/comm_time_overall.png)
+![comm_time_speedup](/Images/comm_time_speedup.png)
+![comm_time_efficiency](/Images/comm_time_efficiency.png)
+  
+
 </details>
 
 ## 5. Presentation
