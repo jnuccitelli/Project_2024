@@ -1100,6 +1100,7 @@ None of the algorithms are able to parallelize well for communication time. As a
 
 <details>
   <summary><i>Cache Miss Analysis</i></summary>
+  
   ![L1Miss](/Graphs/CacheMissL1.png)
   ![L2Miss](/Graphs/CacheMissL2.png)
   
