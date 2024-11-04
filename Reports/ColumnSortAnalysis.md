@@ -89,6 +89,12 @@ Sorted inputs show lower efficiency at smaller input sizes across all thread cou
 ![comp_small_sorted_weak_efficiency](../Graphs/GraphsColumnSort/comp_small_sorted_weak_efficiency.png)
 
 ## Comp_Large: Average Time Spent Computing (Sorting) Per Processor
+For the measurements for this section, we used Avg time/rank from the Cali file, which would be the average amount of time it takes to tranpose, retranpose, shift and unshift the matrix. This part of the algorithm is sequential.
+
+### Strong Scaling Plots
+
+### Strong Speedup/Weak Efficiency Plots
+
 ![comp_large_65536](../Graphs/GraphsColumnSort/comp_large_65536.png)
 ![comp_large_262144](../Graphs/GraphsColumnSort/comp_large_262144.png)
 ![comp_large_1048576](../Graphs/GraphsColumnSort/comp_large_1048576.png)
@@ -103,6 +109,9 @@ For the measurements for this section, we used Avg time/rank from the Cali file,
 
 ### Strong Scaling Plots
 
+For smaller input sizes, as more threads are added, the execution time increases steadily, showing that the algorithm doesn’t scale well. The extra work required to manage multiple threads isn’t worth it, and the algorithm might actually run faster with just one thread or a few.
+For larger input sizes, the algorithm shows good performance improvement up to 4 threads, but after that, the gains level off. This indicates that while the algorithm is suited for bigger datasets, there’s a point where the communication overhead becomes too much as more threads are added.
+
 ![comm_65536](../Graphs/GraphsColumnSort/comm_65536.png)
 ![comm_262144](../Graphs/GraphsColumnSort/comm_262144.png)
 ![comm_1048576](../Graphs/GraphsColumnSort/comm_1048576.png)
@@ -112,6 +121,9 @@ For the measurements for this section, we used Avg time/rank from the Cali file,
 ![comm_268435456](../Graphs/GraphsColumnSort/comm_268435456.png)
 
 ### Strong Speedup/Weak Efficiency Plots
+
+The algorithm struggles to scale effectively as more threads are used. Speedup and efficiency drop quickly, especially when using more than 8 threads, regardless of the input size. This suggests that the current parallelization approach may not be well-suited for managing a large number of threads efficiently.
+Larger input sizes perform better at first, showing higher speedup and efficiency, which indicates that the algorithm works best when each thread has more work to do. This minimizes the effect of communication overhead. However, even with larger input sizes, the benefits of adding more threads quickly decrease as the thread count rises.
 
 ![comm_permuted_strong_speedup](../Graphs/GraphsColumnSort/comm_permuted_strong_speedup.png)
 ![comm_permuted_weak_efficiency](../Graphs/GraphsColumnSort/comm_permuted_weak_efficiency.png)
