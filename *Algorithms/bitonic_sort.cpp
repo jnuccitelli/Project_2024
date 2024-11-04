@@ -1,215 +1,182 @@
-
 /******************************************************************************
 * FILE: bitonic_sort.cpp
 * DESCRIPTION:  
-*   Bitonic Sort Algorithm implementation
-*   This code sorts arrays using bitonic sort!
+*   Bitonic Sort Algorithm implementation with Caliper instrumentation.
 * AUTHOR: Maximiliano Pombo
-* LAST REVISED: 10/16/2024
+* LAST REVISED: 10/30/2024
 ******************************************************************************/
+
 #include "mpi.h"
 #include "helpers.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <limits.h>
 #include <vector>
 #include <algorithm>
 #include <ctime>
-#include <caliper/cali.h> // for performance analysis
+#include <caliper/cali.h> 
 #include <caliper/cali-manager.h>
 #include <adiak.hpp>
 #include <queue>
-#include <vector>
 
-#define MASTER 0         
+#define MASTER 0
 
-// Region definitions
-const char* main_cali = "main";
-const char* data_init_runtime = "data_init_runtime";
-const char* correctness_check = "correctness_check";
-const char* comm = "comm";
-const char* comm_small = "comm_small";
-const char* comm_large = "comm_large";
-const char* comp = "comp";
-const char* comp_small = "comp_small";
-const char* comp_large = "comp_large";
 
-// Function declarations
 void bitonicSort(std::vector<int>& array, int size, int up);
 void bitonicSeqMerge(std::vector<int>& array, int start, int BseqSize, int direction);
 void bitonicSortrec(std::vector<int>& array, int start, int BseqSize, int direction);
 void swap(int& first, int& second);
 bool verifySorted(const std::vector<int>& array);
-void mergeSortedArrays(std::vector<int>& array, int totalSize, int totalProcNum); // Updated function declaration
+void mergeSortedArrays(std::vector<int>& array, int totalSize, int totalProcNum);
 
-int main (int argc, char *argv[])
+int main(int argc, char *argv[])
 {
-    CALI_CXX_MARK_FUNCTION;
+    CALI_MARK_BEGIN("main");
 
-    int sizeOfArray; 
-    int inputType;
+    int sizeOfArray, inputType;
     MPI_Status status;
+
+    // Initialize MPI
+    MPI_Init(&argc, &argv);
+    int totalProcNum, taskId;
+    MPI_Comm_rank(MPI_COMM_WORLD, &taskId);
+    MPI_Comm_size(MPI_COMM_WORLD, &totalProcNum);
 
     cali::ConfigManager mgr;
     mgr.start();
-
-    CALI_MARK_BEGIN(main_cali);
-    CALI_MARK_BEGIN(data_init_runtime);
 
     // Input handling
     if (argc == 3) {
         sizeOfArray = atoi(argv[1]);
         inputType = atoi(argv[2]);
-        if(inputType < 0 || inputType > 3) {
-            printf("\n Please provide a valid input type [0-3]");
+        if (inputType < 0 || inputType > 3) {
+            if (taskId == MASTER) {
+                printf("Please provide a valid input type [0-3]\n");
+            }
+            MPI_Finalize();
             return 0;
         }
     } else {
-        printf("\n Please provide arguments [sizeOfArray] [input type]");
+        if (taskId == MASTER) {
+            printf("Please provide arguments [sizeOfArray] [input type]\n");
+        }
+        MPI_Finalize();
         return 0;
     }
 
-    int totalProcNum;
-    int taskId;
 
-    MPI_Init(&argc, &argv);
-    MPI_Comm_rank(MPI_COMM_WORLD, &taskId);
-    MPI_Comm_size(MPI_COMM_WORLD, &totalProcNum);
+    int localArraySize = sizeOfArray / totalProcNum;
+    std::vector<int> localArray(localArraySize);
+    srand(std::time(0) + taskId);
 
-    // Create an array of size sizeOfArray / proc count
-    std::vector<int> localArray(sizeOfArray / totalProcNum);
-    srand(std::time(0) + taskId); // Seed randomness based on process ID
-
-    // Populate the array based on input type
-    CALI_MARK_END(data_init_runtime);
-    CALI_MARK_BEGIN(data_init_runtime);
-    if (inputType == 0) { // Random input
-        for (size_t i = 0; i < localArray.size(); ++i) {
-            localArray[i] = rand() % 10000; // Random values
+    // Populate local array based on input type
+    CALI_MARK_BEGIN("data_init_runtime");
+    if (inputType == 0) {
+        for (int& val : localArray) {
+            val = rand() % 10000;
         }
-    } else if (inputType == 1) { // Sorted input
-        for (size_t i = 0; i < localArray.size(); ++i) {
+    } else if (inputType == 1) {
+        for (int i = 0; i < localArraySize; ++i) {
             localArray[i] = i + (sizeOfArray * taskId);
         }
-    } else if (inputType == 2) { // Reverse sorted input
-        for (size_t i = 0; i < localArray.size(); ++i) {
+    } else if (inputType == 2) {
+        for (int i = 0; i < localArraySize; ++i) {
             localArray[i] = sizeOfArray - i - 1 + (sizeOfArray * taskId);
         }
-    } else if (inputType == 3) { // One percent permuted
-        for (size_t i = 0; i < localArray.size(); ++i) {
+    } else if (inputType == 3) {
+        for (int i = 0; i < localArraySize; ++i) {
             localArray[i] = i + (sizeOfArray * taskId);
         }
-        // Randomly permute 1% of the array
-        for (size_t i = 0; i < localArray.size() / 100; ++i) {
-            int index = rand() % localArray.size();
-            localArray[index] = rand() % 10000; // Random values
+        for (int i = 0; i < localArraySize / 100; ++i) {
+            int index = rand() % localArraySize;
+            localArray[index] = rand() % 10000;
         }
     }
-    CALI_MARK_END(data_init_runtime);
+    CALI_MARK_END("data_init_runtime");
 
+    // Display initial local array
     printf("Initial array (Process %d): ", taskId);
-    for (const auto& value : localArray) {
-        printf("%d ", value);
+    for (const int& val : localArray) {
+        printf("%d ", val);
     }
     printf("\n");
 
-    // Perform Bitonic Sort on the local array
-    CALI_MARK_BEGIN(comp);
-    bitonicSort(localArray, localArray.size(), 1); // Sort in ascending order
-    CALI_MARK_END(comp);
+    // Perform Bitonic Sort on local array
+    CALI_MARK_BEGIN("comp");
+    CALI_MARK_BEGIN("comp_large");
+    bitonicSort(localArray, localArray.size(), 1);
+    CALI_MARK_END("comp_large");
+    CALI_MARK_END("comp");
 
-    // Gather sorted chunks back to the root process
+    // Gather sorted chunks at root process
     std::vector<int> sortedArray;
     if (taskId == MASTER) {
         sortedArray.resize(sizeOfArray);
     }
 
-    CALI_MARK_BEGIN(comm);
-    MPI_Gather(localArray.data(), localArray.size(), MPI_INT, sortedArray.data(), localArray.size(), MPI_INT, MASTER, MPI_COMM_WORLD);
-    CALI_MARK_END(comm);
+    CALI_MARK_BEGIN("comm");
+    CALI_MARK_BEGIN("comm_large");
+    CALI_MARK_BEGIN("MPI_Gather");
+    MPI_Gather(localArray.data(), localArray.size(), MPI_INT, 
+               sortedArray.data(), localArray.size(), MPI_INT, 
+               MASTER, MPI_COMM_WORLD);
+    CALI_MARK_END("MPI_Gather");
+    CALI_MARK_END("comm_large");
+    CALI_MARK_END("comm");
 
-    // Perform final merge on the master process
-    // if (taskId == MASTER) {
-    //     mergeSortedArrays(sortedArray, sizeOfArray, totalProcNum); // Pass totalProcNum as an argument
-    //     if (verifySorted(sortedArray)) {
-    //         printf("Sorted array:\n");
-    //         for (const auto& value : sortedArray) {
-    //             printf("%d ", value);
-    //         }
-    //         printf("\n");
-    //     } else {
-    //         printf("The array is not sorted correctly.\n");
-    //         for (const auto& value : sortedArray) {
-    //             printf("%d ", value);
-    //         }
-    //         printf("\n");
-    //     }
-    // }
+
+    CALI_MARK_BEGIN("comm");
+    CALI_MARK_BEGIN("comm_small");
+    CALI_MARK_END("comm_small");
+    CALI_MARK_END("comm");
+
+
     if (taskId == MASTER) {
+        CALI_MARK_BEGIN("comp");
+        CALI_MARK_BEGIN("comp_small");
         mergeSortedArrays(sortedArray, sizeOfArray, totalProcNum);
-        
+        CALI_MARK_END("comp_small");
+        CALI_MARK_END("comp");
+
+        CALI_MARK_BEGIN("correctness_check");
         if (verifySorted(sortedArray)) {
-            printf("Sorted array:\n");
-            for (const auto& value : sortedArray) {
-                printf("%d ", value);
-            }
-            printf("\n");
+            printf("Array sorted correctly!\n");
         } else {
-            printf("The array is not sorted correctly.\n");
-            for (const auto& value : sortedArray) {
-                printf("%d ", value);
-            }
-            printf("\n");
+            printf("Array sorting failed!\n");
         }
+        CALI_MARK_END("correctness_check");
     }
 
-    // Finalize Caliper
-    adiak::init(NULL);
-    adiak::launchdate();    
-    adiak::libraries();     
-    adiak::cmdline();       
-    adiak::clustername();   
-    adiak::value("algorithm", "bitonic"); 
-    adiak::value("programming_model", "mpi"); 
-    adiak::value("data_type", "int"); 
-    adiak::value("size_of_data_type", sizeof(int)); 
-    adiak::value("input_size", sizeOfArray); 
-    adiak::value("input_type", (inputType == 0 ? "Random" :
-                                inputType == 1 ? "Sorted" :
-                                inputType == 2 ? "Reverse Sorted" : "1% Perturbed"));
-    adiak::value("num_procs", totalProcNum); 
-    adiak::value("scalability", "strong"); 
-    adiak::value("group_num", 1); 
-    adiak::value("implementation_source", "handwritten");
 
     mgr.stop();
     mgr.flush();
-
+    CALI_MARK_END("main");
     MPI_Finalize();
+
     return 0;
 }
 
-// Bitonic Sort function
+
 void bitonicSort(std::vector<int>& array, int size, int up) {
+    CALI_MARK_BEGIN("comp_small");
     bitonicSortrec(array, 0, size, up);
+    CALI_MARK_END("comp_small");
 }
 
-// Recursive function for bitonic sorting
+
 void bitonicSortrec(std::vector<int>& array, int start, int BseqSize, int direction) {
     if (BseqSize > 1) {
         int k = BseqSize / 2;
-        // Sort in ascending order if direction is 1, otherwise descending
         bitonicSortrec(array, start, k, 1);
         bitonicSortrec(array, start + k, k, 0);
         bitonicSeqMerge(array, start, BseqSize, direction);
     }
 }
 
-// Bitonic Sequence Merge function
+
 void bitonicSeqMerge(std::vector<int>& array, int start, int BseqSize, int direction) {
     if (BseqSize > 1) {
         int k = BseqSize / 2;
-        for (int i = start; i < start + k; i++) {
+        for (int i = start; i < start + k; ++i) {
             if (direction == (array[i] > array[i + k])) {
                 swap(array[i], array[i + k]);
             }
@@ -219,37 +186,21 @@ void bitonicSeqMerge(std::vector<int>& array, int start, int BseqSize, int direc
     }
 }
 
-// Function to merge sorted arrays from all processes
-// Function to merge sorted arrays from all processes
-void mergeSortedArrays(std::vector<int>& array, int totalSize, int totalProcNum) {
-    std::priority_queue<std::pair<int, int>> minHeap;
-    
-    // Push initial elements from each process into the heap
-    for (int i = 0; i < totalSize; i++) {
-        minHeap.push({array[i], i % totalProcNum}); // Use modulo to wrap around processes
-    }
-    
-    // Merge sorted arrays
-    for (int i = 0; i < totalSize; i++) {
-        int smallestElement = minHeap.top().first;
-        int processId = minHeap.top().second;
-        minHeap.pop();
-        
-        array[i] = smallestElement;
-        
-        // Push next element from the same process into the heap
-        int nextProcessId = (processId + 1) % totalProcNum;
-        if (!minHeap.empty() && minHeap.top().second == nextProcessId) {
-            minHeap.push({array[nextProcessId], nextProcessId});
-        }
-    }
 
-    
+void mergeSortedArrays(std::vector<int>& array, int totalSize, int totalProcNum) {
+    CALI_MARK_BEGIN("comp_small");
+    std::priority_queue<std::pair<int, int>> minHeap;
+    for (int i = 0; i < totalSize; i++) {
+        minHeap.push({array[i], i % totalProcNum});
+    }
+    for (int i = 0; i < totalSize; i++) {
+        array[i] = minHeap.top().first;
+        minHeap.pop();
+    }
+    CALI_MARK_END("comp_small");
 }
 
-
-
-// Swap helper function 
+// Swap helper function
 void swap(int& first, int& second) {
     int temp = first;
     first = second;
