@@ -24,9 +24,9 @@ For the measurements for this section, we used Max time/rank from the Cali file,
 
 ### Strong Scaling Plots
 
-For smaller input sizes, using fewer threads might be more efficient because the overhead from managing communication between threads can outweigh the benefits of parallelization.
+For any input size, using fewer threads can be more efficient since the communication overhead may outweigh the benefits of parallelization, limiting any reduction in computation time. However, after 256 processors, performance improves with 512 processors, even though the overall time is still higher than with fewer processors. This suggests that increasing the number of processors beyond 256 could further enhance performance and reduce overall time.
 
-For larger input sizes, improving the way processes are handled can help keep the performance gains going beyond the initial improvement phase (around 2–4 threads). Also, finding ways to balance the workload across threads could improve efficiency, especially for different input types.
+Across nearly all input sizes and types, the overall time does not vary significantly. However, for the largest input size 2^28, a clear difference is seen: Random inputs take the longest time, followed by 1% Perturbed, Reverse, and Sorted, in decreasing order of overall time. The more disorganized an input type is, the more swapping is required, leading to an increase in overall time.
 
 ![main_65536](../Graphs/GraphsColumnSort/main_65536.png)
 ![main_262144](../Graphs/GraphsColumnSort/main_262144.png)
