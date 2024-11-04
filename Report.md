@@ -1107,7 +1107,7 @@ None of the algorithms are able to parallelize well for communication time. As a
     ![RadixMiss](/Graphs/cacheRadix.png)
   ![SampleMiss](/Graphs/CacheSample.png)
     ![ColumnMiss](/Graphs/CacheColumn.png)
-
+The cache miss has some effect on input type. For radix there is little effect which makes sense based on how the input types work for that algorithm. Column sort and Sample sort both use STD sort which has an effect on cache misses accordingly.
 
 </details>
 
