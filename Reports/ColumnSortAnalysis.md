@@ -89,6 +89,7 @@ Sorted inputs show lower efficiency at smaller input sizes across all thread cou
 For the measurements for this section, we used Avg time/rank from the Cali file, which would be the average amount of time it takes to tranpose, retranpose, shift and unshift the matrix. This part of the algorithm is sequential.
 
 ### Strong Scaling Plots
+Since this part is the sequential part of the algorithm, adding thread counts should not affect the scaling, speedup or efficiency of the program. However, these graphs do not look linear as the peaks and the dips correspond to where I changed the values of my rows and columns to make my algorithm more efficient for that particular for that particular processor count. I initally intended to run everything with 16 columns and modify the columns according to the input size. But that would not give me a fair assessment for the parallelized part of the algorithm, since for any processor number above 16 would have the same performance regardless of the processor count. Here, we can see how changing the distribution of the data and rows and columns of the matrix impacted the algorithm. The trend is mostly linear except for 128 and 256 processors.
 
 ![comp_large_65536](../Graphs/GraphsColumnSort/comp_large_65536.png)
 ![comp_large_262144](../Graphs/GraphsColumnSort/comp_large_262144.png)
@@ -99,6 +100,9 @@ For the measurements for this section, we used Avg time/rank from the Cali file,
 ![comp_large_268435456](../Graphs/GraphsColumnSort/comp_large_268435456.png)
 
 ### Strong Speedup/Weak Efficiency Plots
+
+As expected, there is not much of a speedup for this region, since it is the sequential region. But processors 128 and 256 seem to have similar behavior for input sizes and types except for the second largest input size 2^26, that could be because the distribution of the data was optimal so the speedup is mostly a straight line. Weak effienciency graphs results sharply decreases to zero since with adding more processors has no impact on the efficiency of the algorithm since this part of the algorithm is not parallelized.
+
 ![comp_large_permuted_strong_speedup](../Graphs/CorrectGraphsColumn/comp_large_permuted_strong_speedup.png)
 ![comp_large_permuted_weak_efficiency](../Graphs/CorrectGraphsColumn/comp_large_permuted_weak_efficiency.png)
 ![comp_large_random_strong_speedup](../Graphs/CorrectGraphsColumn/comp_large_Random_strong_speedup.png)
@@ -113,8 +117,7 @@ For the measurements for this section, we used Avg time/rank from the Cali file,
 
 ### Strong Scaling Plots
 
-For smaller input sizes, as more threads are added, the execution time increases steadily, showing that the algorithm doesn’t scale well. The extra work required to manage multiple threads isn’t worth it, and the algorithm might actually run faster with just one thread or a few.
-For larger input sizes, the algorithm shows good performance improvement up to 4 threads, but after that, the gains level off. This indicates that while the algorithm is suited for bigger datasets, there’s a point where the communication overhead becomes too much as more threads are added.
+For smaller input sizes, as more threads are added, the execution time increases steadily, showing that the algorithm doesn’t scale well. The extra work required to manage multiple threads isn’t worth it, and the algorithm might actually run faster with fewer processes. For larger input sizes, the algorithm shows good performance improvement up to 4 threads, but after that, the gains level off. This indicates that while the algorithm is suited for bigger datasets, there’s a point where the communication overhead becomes too much as more threads are added. From the other graphs above, it seems for larger datasets the distribution of data was more uniform and favourable for a larger process count than smaller process count. So after 256 processes there seems to be an improvement in the overall time and scability of the algorithm.
 
 ![comm_65536](../Graphs/GraphsColumnSort/comm_65536.png)
 ![comm_262144](../Graphs/GraphsColumnSort/comm_262144.png)
@@ -126,8 +129,7 @@ For larger input sizes, the algorithm shows good performance improvement up to 4
 
 ### Strong Speedup/Weak Efficiency Plots
 
-The algorithm struggles to scale effectively as more threads are used. Speedup and efficiency drop quickly, especially when using more than 8 threads, regardless of the input size. This suggests that the current parallelization approach may not be well-suited for managing a large number of threads efficiently.
-Larger input sizes perform better at first, showing higher speedup and efficiency, which indicates that the algorithm works best when each thread has more work to do. This minimizes the effect of communication overhead. However, even with larger input sizes, the benefits of adding more threads quickly decrease as the thread count rises.
+The algorithm struggles to scale effectively as more threads are used. Speedup and efficiency drop quickly, especially when using more than 8 threads, regardless of the input size. This suggests that the current parallelization approach may not be well-suited. Larger input sizes perform better at first, showing higher speedup and efficiency, which indicates that the algorithm works best when each thread has more work to do. This minimizes the effect of communication overhead. However, even with larger input sizes, the benefits of adding more threads quickly decrease as the thread count rises.
 
 ![comm_permuted_strong_speedup](../Graphs/GraphsColumnSort/comm_permuted_strong_speedup.png)
 ![comm_permuted_weak_efficiency](../Graphs/GraphsColumnSort/comm_permuted_weak_efficiency.png)
