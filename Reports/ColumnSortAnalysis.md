@@ -11,6 +11,8 @@ But as I ran my program with more number of processes, the overall runtime incre
 ![512_calcs](/Images/512_calcs.png)
 
 So, these are what I ran for each test case and I kept the same configuration for each input type such as sorted, reverse sorted, 1 % perturbed and random.
+![configs_1](/Images/configs_1.png)
+![configs_2](/Images/configs_2.png)
 
 I faced network errors while running the program on 1024 processors, leading to missing Caliper profiling files for this configuration. Additionally, the program times out when processing the largest array size with 32 processors or more. To improve performance, I need to enhance the parallelization of my algorithm, as column sort is inherently parallel. 
 
