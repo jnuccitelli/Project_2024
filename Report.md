@@ -1060,26 +1060,14 @@ Analyze these plots and choose a subset to present and explain in your presentat
 
   This is the same graph shown above but without radix sort, so other trends in algorthims can be viewed more clearly. Merge sort and sample sort perform by far the best, as they take limited time, even at lower processor counts. Intrestingly, bitonic sort intially takes more time than column sort, however column sort increases with the number of processors while bitonic sort decreases with the number of processors. The expected behavior for all algortihms is that as you add more processors, the execution time decreases. The reason the column sort doesn't display this property is that the communcation between processes increases faster than the comparison benifit for including more processors.
 
-  ![overall graph without radix sort](/Graphs/ComparisonGraphs/OverallGraphWithoutRadixSort.jpg)
-
-  ### Communication Time
-
-The overall comm time for radix sort is significantly higher because of how radix sort was implemented. Radix sort uses bitwise sorting with a base of 32, so the sorting is complete only after 32 iterations. Also, after sorting each element is sent to the new araay individually as a result of which the number of MPI_send calls that are created are 32*array_size. Column sort is not properly or efficiently parallelized and it uses std::sort to sort each column which has an affect on the overall communication time as the numerb of processors increases.
-
-![comm_time_overall](/Images/comm_time_overall.png)
-
-For the speedup graph, radix and merge have a linear speedup which is a good sign but for merge sort it reaches a saturation point after which the speedup decreases. Sample sort is supposed to be the best in communication time and worst for computation time. However, the sample sort trend for the speedup graph is similar to bitonic sort and column osrt which suggests that implementation of smaple sort was not efficient. For column sort and bitonic sort, the algorithm is not parallelized properly and with that there is a exponential decay in their speedup.
-
-![comm_time_speedup](/Images/comm_time_speedup.png)
-
-None of the algorithms are able to parallelize well for communication time. As a result of which, the efficiency trends rapidly go to zero.
-![comm_time_efficiency](/Images/comm_time_efficiency.png)
-  
+  ![overall graph without radix sort](/Graphs/ComparisonGraphs/OverallGraphWithoutRadixSort.jpg)  
 
 </details>
 
 <details>
-  <summary><i>Overall Scaling Comparisons</i></summary>
+  <summary><i>Overall Scaling Comparison</i></summary>
+  
+  ### Overall Scaling Comparison
 
   Although the details on why the individual lines on these graphs look the way they do are included in the individual algorithm analysis shown above, there are some details for these graphs that can be touched on. 
 
@@ -1095,7 +1083,18 @@ None of the algorithms are able to parallelize well for communication time. As a
 <details>
   <summary><i>Communication Analysis</i></summary>
   
-  INSERT HERE
+### Communication Time
+
+The overall comm time for radix sort is significantly higher because of how radix sort was implemented. Radix sort uses bitwise sorting with a base of 32, so the sorting is complete only after 32 iterations. Also, after sorting each element is sent to the new araay individually as a result of which the number of MPI_send calls that are created are 32*array_size. Column sort is not properly or efficiently parallelized and it uses std::sort to sort each column which has an affect on the overall communication time as the numerb of processors increases.
+
+![comm_time_overall](/Images/comm_time_overall.png)
+
+For the speedup graph, radix and merge have a linear speedup which is a good sign but for merge sort it reaches a saturation point after which the speedup decreases. Sample sort is supposed to be the best in communication time and worst for computation time. However, the sample sort trend for the speedup graph is similar to bitonic sort and column osrt which suggests that implementation of smaple sort was not efficient. For column sort and bitonic sort, the algorithm is not parallelized properly and with that there is a exponential decay in their speedup.
+
+![comm_time_speedup](/Images/comm_time_speedup.png)
+
+None of the algorithms are able to parallelize well for communication time. As a result of which, the efficiency trends rapidly go to zero.
+![comm_time_efficiency](/Images/comm_time_efficiency.png)
 
 </details>
 
