@@ -913,13 +913,6 @@ The algorithm struggles to scale effectively as more threads are used. Speedup a
 </details>
 
 <details>
-  <summary><i>Sample Sort</i></summary>
-  
-  INSERT HERE
-
-</details>
-
-<details>
   <summary><i>Bitonic Sort</i></summary>
   
   # Bitonic Sort Analysis: Maximiliano Pombo
@@ -1046,12 +1039,15 @@ After running all of my analysis and looking at my code structure, I determined 
 
 </details>
 
-<details>
-  <summary><i>Cache Miss Analysis</i></summary>
-  
-  INSERT HERE
+## 5. Presentation
+Plots for the presentation should be as follows:
+- For each implementation:
+    - For each of comp_large, comm, and main:
+        - Strong scaling plots for each input_size with lines for input_type (7 plots - 4 lines each)
+        - Strong scaling speedup plot for each input_type (4 plots)
+        - Weak scaling plots for each input_type (4 plots)
 
-</details>
+Analyze these plots and choose a subset to present and explain in your presentation.
 
 <details>
   <summary><i>Overall Algorithm Comparison</i></summary>
@@ -1082,15 +1078,33 @@ None of the algorithms are able to parallelize well for communication time. As a
 
 </details>
 
-## 5. Presentation
-Plots for the presentation should be as follows:
-- For each implementation:
-    - For each of comp_large, comm, and main:
-        - Strong scaling plots for each input_size with lines for input_type (7 plots - 4 lines each)
-        - Strong scaling speedup plot for each input_type (4 plots)
-        - Weak scaling plots for each input_type (4 plots)
+<details>
+  <summary><i>Overall Scaling Comparisons</i></summary>
 
-Analyze these plots and choose a subset to present and explain in your presentation.
+  Although the details on why the individual lines on these graphs look the way they do are included in the individual algorithm analysis shown above, there are some details for these graphs that can be touched on. 
+
+  First of all, looking at the computation time, it may appear strange that the column sort computation is linear scaling. However, this graph only looks at the parallelized part of column sort, which explains this. Furthermore, it may be surprising that sample sort exhibits weak computation time and ends up having the best scaling for the whole program. However, this is because the communication in sample sort is more efficient and does not detract much from the computation speedup, unlike with the other algorithms. We could also possibly get more trend information from more processes to see how the behavior of sample sort compares to the other algorithms as it grows, but due to limitations with execution time, we could not get this data.
+  
+  ![speedupmain](/Graphs/ComparisonGraphs/strongmain.png)
+  ![weakefficiencymain](/Graphs/ComparisonGraphs/weakmain.png)
+  ![speedupcomp](/Graphs/ComparisonGraphs/strongcomp.png)
+  ![weakefficiencycomp](/Graphs/ComparisonGraphs/weakcomp.png)
+
+</details>
+
+<details>
+  <summary><i>Communication Analysis</i></summary>
+  
+  INSERT HERE
+
+</details>
+
+<details>
+  <summary><i>Cache Miss Analysis</i></summary>
+  
+  INSERT HERE
+
+</details>
 
 ## 6. Final Report
 Submit a zip named `TeamX.zip` where `X` is your team number. The zip should contain the following files:
