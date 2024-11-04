@@ -102,14 +102,14 @@ For the measurements for this section, we used Avg time/rank from the Cali file,
 ![comp_large_268435456](../Graphs/GraphsColumnSort/comp_large_268435456.png)
 
 ### Strong Speedup/Weak Efficiency Plots
-![comp_small_permuted_strong_speedup](../Graphs/GraphsColumnSort/comp_large_permuted_strong_speedup.png)
-![comp_small_permuted_weak_efficiency](../Graphs/GraphsColumnSort/comp_large_permuted_weak_efficiency.png)
-![comp_small_random_strong_speedup](../Graphs/GraphsColumnSort/comp_large_random_strong_speedup.png)
-![comp_small_random_weak_efficiency](../Graphs/GraphsColumnSort/comp_large_random_weak_efficiency.png)
-![comp_small_reversed_strong_speedup](../Graphs/GraphsColumnSort/comp_large_reverse_strong_speedup.png)
-![comp_small_reversed_weak_efficiency](../Graphs/GraphsColumnSort/comp_large_reverse_weak_efficiency.png)
-![comp_small_sorted_strong_speedup](../Graphs/GraphsColumnSort/comp_large_sorted_strong_speedup.png)
-![comp_small_sorted_weak_efficiency](../Graphs/GraphsColumnSort/comp_large_sorted_weak_efficiency.png)
+![comp_large_permuted_strong_speedup](../Graphs/CorrectGraphsColumn/comp_large_permuted_strong_speedup.png)
+![comp_large_permuted_weak_efficiency](../Graphs/CorrectGraphsColumn/comp_large_permuted_weak_efficiency.png)
+![comp_large_random_strong_speedup](../Graphs/CorrectGraphsColumn/comp_large_Random_strong_speedup.png)
+![comp_large_random_weak_efficiency](../Graphs/CorrectGraphsColumn/comp_large_Random_weak_efficiency.png)
+![comp_large_reversed_strong_speedup](../Graphs/CorrectGraphsColumn/comp_large_Reverse_strong_speedup.png)
+![comp_large_reversed_weak_efficiency](../Graphs/CorrectGraphsColumn/comp_large_Reverse_weak_efficiency.png)
+![comp_large_sorted_strong_speedup](../Graphs/CorrectGraphsColumn/comp_large_Sorted_strong_speedup.png)
+![comp_large_sorted_weak_efficiency](../Graphs/CorrectGraphsColumn/comp_large_Sorted_weak_efficiency.png)
 
 ## Comm: Average Time Spent Communicating Per Processor
 For the measurements for this section, we used Avg time/rank from the Cali file, which would be the average amount of time each task spends sending or receiving data from other tasks.
